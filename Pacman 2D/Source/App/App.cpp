@@ -1,6 +1,8 @@
 #include "App.h"
 
 #include <iostream>
+#include <ECS/ECS.h>
+#include <Windows.h>
 
 void frameBufferSizeCallback(GLFWwindow* window, int width, int height);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
@@ -20,7 +22,9 @@ int App::Run()
 	}
 
 	isRunning = true;
-	
+
+	OnCreate();
+
 	while (!glfwWindowShouldClose(window) && this->isRunning)
 	{
 		//process any input events
@@ -39,6 +43,8 @@ int App::Run()
 		//check for any events to happen (keyboard, mouse movement, etc)
 		glfwPollEvents();
 	}
+
+	OnClose();
 
 	return 0;
 }
@@ -76,14 +82,26 @@ int App::Init()
 		return -1;
 	}
 
-
 	//set window resize callback
 	glfwSetFramebufferSizeCallback(window, frameBufferSizeCallback);
 	glfwSetCursorPosCallback(window, mouseCallback);
 	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetScrollCallback(window, mouseScrollCallback);
 
+	//set a pointer to the current object, so that we can retrieve it in the callback function
+	glfwSetWindowUserPointer(window, this);
+
+	//set console color to white
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(hConsole, CONSOLE_WHITE_COLOR);
 	return 0;
+}
+
+void App::OnCreate()
+{
+	Log(LOG_INFO, "Application started");
+	Log(LOG_WARNING, "This is a warning message");
+	Log(LOG_ERROR, "This is an error message");
 }
 
 void App::Draw()
@@ -92,6 +110,95 @@ void App::Draw()
 
 void App::Update(float dt)
 {
+}
+
+void App::OnClose()
+{
+}
+
+void App::Log(LogType type, const char* message)
+{
+	//print time first
+	//get the current time
+	SetConsoleColor(CONSOLE_GRAY_COLOR);
+	time_t now = time(0);
+	//convert now to string form
+	char buffer[26];
+	ctime_s(buffer, 26, &now);
+	//print the time
+	std::cout << buffer;
+
+	switch (type)
+	{
+	case App::LOG_INFO:
+		SetConsoleColor(CONSOLE_WHITE_COLOR);
+		std::cout << "[INFO]: " << message;
+		break;
+	case App::LOG_WARNING:
+		SetConsoleColor(CONSOLE_YELLOW_COLOR);
+		std::cout << "[WARNING]: " << message;
+		break;
+	case App::LOG_ERROR:
+		SetConsoleColor(CONSOLE_RED_COLOR);
+		std::cout << "[ERROR]: " << message;
+		break;
+	default:
+		assert(false && "Not implemented");
+		break;
+	}
+
+	//reset the color to white
+	ResetConsoleColor();
+	std::cout << "\n";
+}
+
+void App::LogArg(LogType type, const char* format, ...)
+{
+	//print time first
+	//get the current time
+	SetConsoleColor(CONSOLE_GRAY_COLOR);
+	time_t now = time(0);
+	//convert now to string form
+	char buffer[26];
+	ctime_s(buffer, 26, &now);
+	//print the time
+	std::cout << buffer;
+
+	switch (type)
+	{
+	case App::LOG_INFO:
+		std::cout << "[INFO]: ";
+		break;
+	case App::LOG_WARNING:
+		SetConsoleColor(CONSOLE_YELLOW_COLOR);
+		break;
+	case App::LOG_ERROR:
+		SetConsoleColor(CONSOLE_RED_COLOR);
+		break;
+	default:
+		break;
+	}
+
+	va_list args;
+	va_start(args, format);
+	vprintf(format, args);
+	va_end(args);
+
+	//reset the color to white
+	ResetConsoleColor();
+	std::cout << "\n";
+}
+
+void App::ResetConsoleColor()
+{
+	static HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(hConsole, CONSOLE_WHITE_COLOR);
+}
+
+void App::SetConsoleColor(int color)
+{
+	static HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(hConsole, color);
 }
 
 App::~App()
@@ -128,6 +235,9 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 
 void processInput(GLFWwindow* window)
 {
+	//this raw pointer is just a reference to the current object not the owner of the object
+	App* app = (App*)glfwGetWindowUserPointer(window);
+
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(window, true);
@@ -166,5 +276,7 @@ void processInput(GLFWwindow* window)
 
 void mouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
+	//this raw pointer is just a reference to the current object not the owner of the object
+	App* app = (App*)glfwGetWindowUserPointer(window);
 	//TODO
 }

@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\main.cpp">
+    <ClCompile Include="Source\Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Vendors\Includes\glm\detail\glm.cpp">
@@ -1163,6 +1163,9 @@
     <ClInclude Include="Source\App\App.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\ECS\ECS.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Vendors\Includes\assimp\color4.inl">
@@ -1603,6 +1606,7 @@
     <None Include="Vendors\Includes\glm\gtx\wrap.inl">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="assimp-vc143-mtd.dll" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Vendors\Libs\assimp-vc143-mtd.lib" />

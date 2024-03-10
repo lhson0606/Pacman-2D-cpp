@@ -48,32 +48,30 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <assimp/defs.h>
 
 namespace Assimp {
+    // ---------------------------------------------------------------------------
+    /**
+     *  @brief  Signature of functions which handle assert violations.
+     */
+    using AiAssertHandler = void (*)(const char* failedExpression, const char* file, int line);
 
-// ---------------------------------------------------------------------------
-/**
- *  @brief  Signature of functions which handle assert violations.
- */
-using AiAssertHandler = void (*)(const char* failedExpression, const char* file, int line);
+    // ---------------------------------------------------------------------------
+    /**
+     *  @brief  Set the assert handler.
+     */
+    ASSIMP_API void setAiAssertHandler(AiAssertHandler handler);
 
-// ---------------------------------------------------------------------------
-/**
- *  @brief  Set the assert handler.
- */
-ASSIMP_API void setAiAssertHandler(AiAssertHandler handler);
+    // ---------------------------------------------------------------------------
+    /** The assert handler which is set by default.
+     *
+     *  @brief  This issues a message to stderr and calls abort.
+     */
+    AI_WONT_RETURN ASSIMP_API void defaultAiAssertHandler(const char* failedExpression, const char* file, int line) AI_WONT_RETURN_SUFFIX;
 
-// ---------------------------------------------------------------------------
-/** The assert handler which is set by default.
- *
- *  @brief  This issues a message to stderr and calls abort.
- */
-AI_WONT_RETURN ASSIMP_API void defaultAiAssertHandler(const char* failedExpression, const char* file, int line) AI_WONT_RETURN_SUFFIX;
-
-// ---------------------------------------------------------------------------
-/**
- *  @brief  Dispatches an assert violation to the assert handler.
- */
-ASSIMP_API void aiAssertViolation(const char* failedExpression, const char* file, int line);
-
+    // ---------------------------------------------------------------------------
+    /**
+     *  @brief  Dispatches an assert violation to the assert handler.
+     */
+    ASSIMP_API void aiAssertViolation(const char* failedExpression, const char* file, int line);
 } // end of namespace Assimp
 
 #endif // INCLUDED_AI_ASSERTHANDLER_H

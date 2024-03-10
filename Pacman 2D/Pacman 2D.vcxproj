@@ -71,19 +71,19 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(ProjectDir)Includes;$(ProjectDir)Vendors\Includes;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Source;$(ProjectDir)Includes;$(ProjectDir)Vendors\Includes;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)Vendors\Libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(ProjectDir)Includes;$(ProjectDir)Vendors\Includes;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Source;$(ProjectDir)Includes;$(ProjectDir)Vendors\Includes;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)Vendors\Libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir)Includes;$(ProjectDir)Vendors\Includes;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Source;$(ProjectDir)Includes;$(ProjectDir)Vendors\Includes;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)Vendors\Libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(ProjectDir)Includes;$(ProjectDir)Vendors\Includes;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Source;$(ProjectDir)Includes;$(ProjectDir)Vendors\Includes;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)Vendors\Libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -152,7 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\App\App.cpp" />
-    <ClCompile Include="Source\main.cpp" />
+    <ClCompile Include="Source\Main.cpp" />
     <ClCompile Include="Vendors\glad.c" />
     <ClCompile Include="Vendors\Includes\glm\detail\glm.cpp" />
     <ClCompile Include="Vendors\Includes\glm\glm.cppm" />
@@ -160,6 +160,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\App\App.h" />
+    <ClInclude Include="Source\ECS\ECS.h" />
     <ClInclude Include="Vendors\Includes\assimp\aabb.h" />
     <ClInclude Include="Vendors\Includes\assimp\ai_assert.h" />
     <ClInclude Include="Vendors\Includes\assimp\anim.h" />
@@ -537,6 +538,7 @@
     <ClInclude Include="Vendors\Includes\STB\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="assimp-vc143-mtd.dll" />
     <None Include="Vendors\Includes\assimp\color4.inl" />
     <None Include="Vendors\Includes\assimp\material.inl" />
     <None Include="Vendors\Includes\assimp\matrix3x3.inl" />
