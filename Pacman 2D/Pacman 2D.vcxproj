@@ -151,16 +151,37 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Includes\dy\Log.cpp" />
+    <ClCompile Include="Source\Render\ShaderManager.cpp" />
+    <ClCompile Include="Source\Map\Map.cpp" />
     <ClCompile Include="Source\App\App.cpp" />
     <ClCompile Include="Source\Main.cpp" />
+    <ClCompile Include="Source\ECS\TransformComponent.cpp" />
+    <ClCompile Include="Source\ECS\TileComponent.cpp" />
+    <ClCompile Include="Source\ECS\SpriteComponent.cpp" />
+    <ClCompile Include="Source\ECS\SpriteSystem.cpp" />
+    <ClCompile Include="Source\ECS\TileSystem.cpp" />
+    <ClCompile Include="Source\Render\Shader.cpp" />
     <ClCompile Include="Vendors\glad.c" />
     <ClCompile Include="Vendors\Includes\glm\detail\glm.cpp" />
     <ClCompile Include="Vendors\Includes\glm\glm.cppm" />
     <ClCompile Include="Vendors\stb_define.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Includes\dy\dyutils.h" />
+    <ClInclude Include="Includes\dy\glutils.h" />
+    <ClInclude Include="Includes\tileson.hpp" />
+    <ClInclude Include="Includes\dy\Log.h" />
+    <ClInclude Include="Source\Render\ShaderManager.h" />
+    <ClInclude Include="Source\Map\Map.h" />
     <ClInclude Include="Source\App\App.h" />
     <ClInclude Include="Source\ECS\ECS.h" />
+    <ClInclude Include="Source\ECS\TransformComponent.h" />
+    <ClInclude Include="Source\ECS\TileComponent.h" />
+    <ClInclude Include="Source\ECS\SpriteComponent.h" />
+    <ClInclude Include="Source\ECS\SpriteSystem.h" />
+    <ClInclude Include="Source\ECS\TileSystem.h" />
+    <ClInclude Include="Source\Render\Shader.h" />
     <ClInclude Include="Vendors\Includes\assimp\aabb.h" />
     <ClInclude Include="Vendors\Includes\assimp\ai_assert.h" />
     <ClInclude Include="Vendors\Includes\assimp\anim.h" />
@@ -539,6 +560,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="assimp-vc143-mtd.dll" />
+    <None Include="Resources\GLSL\map.frag" />
+    <None Include="Resources\GLSL\map.vert" />
+    <None Include="Resources\Maps\level1.json" />
+    <None Include="Resources\Maps\pacman_map_1.tmx" />
     <None Include="Vendors\Includes\assimp\color4.inl" />
     <None Include="Vendors\Includes\assimp\material.inl" />
     <None Include="Vendors\Includes\assimp\matrix3x3.inl" />
@@ -689,6 +714,13 @@
   <ItemGroup>
     <Library Include="Vendors\Libs\assimp-vc143-mtd.lib" />
     <Library Include="Vendors\Libs\glfw3.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\Textures\energized_pellet.png" />
+    <Image Include="Resources\Textures\pacman_map.png" />
+    <Image Include="Resources\Textures\pellet.png" />
+    <Image Include="Resources\Textures\Tunnel.png" />
+    <Image Include="Resources\Textures\UpBanned.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

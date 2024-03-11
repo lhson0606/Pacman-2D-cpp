@@ -3,6 +3,13 @@
 #include <iostream>
 #include <ECS/ECS.h>
 #include <Windows.h>
+#include <Map/Map.h>
+
+#include <ECS/SpriteComponent.h>
+#include <ECS/TransformComponent.h>
+#include <ECS/TileComponent.h>
+
+#include "dy/Log.h"
 
 void frameBufferSizeCallback(GLFWwindow* window, int width, int height);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
@@ -92,20 +99,28 @@ int App::Init()
 	glfwSetWindowUserPointer(window, this);
 
 	//set console color to white
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleTextAttribute(hConsole, CONSOLE_WHITE_COLOR);
+	DyLogger::SetConsoleColor(DyLogger::CONSOLE_WHITE_COLOR);
 	return 0;
 }
 
 void App::OnCreate()
 {
-	Log(LOG_INFO, "Application started");
-	Log(LOG_WARNING, "This is a warning message");
-	Log(LOG_ERROR, "This is an error message");
+	coordinator->RegisterComponent<TransformComponent>();
+	coordinator->RegisterComponent<SpriteComponent>();
+	coordinator->RegisterComponent<TileComponent>();
+
+	tileSystem = coordinator->RegisterSystem<TileSystem>();
+	tileSystem->SetCoordinator(coordinator);
+
+	//load the map
+	std::shared_ptr<Map> map = Map::LoadMap("Resources/Maps/level1.json");
+	tileSystem->InitMap(map);
+	tileSystem->InitMap(map);
 }
 
 void App::Draw()
 {
+	tileSystem->Draw(shaderManager->GetShader(ShaderManager::ShaderType::MAP));
 }
 
 void App::Update(float dt)
@@ -116,89 +131,9 @@ void App::OnClose()
 {
 }
 
-void App::Log(LogType type, const char* message)
+void App::Stop()
 {
-	//print time first
-	//get the current time
-	SetConsoleColor(CONSOLE_GRAY_COLOR);
-	time_t now = time(0);
-	//convert now to string form
-	char buffer[26];
-	ctime_s(buffer, 26, &now);
-	//print the time
-	std::cout << buffer;
-
-	switch (type)
-	{
-	case App::LOG_INFO:
-		SetConsoleColor(CONSOLE_WHITE_COLOR);
-		std::cout << "[INFO]: " << message;
-		break;
-	case App::LOG_WARNING:
-		SetConsoleColor(CONSOLE_YELLOW_COLOR);
-		std::cout << "[WARNING]: " << message;
-		break;
-	case App::LOG_ERROR:
-		SetConsoleColor(CONSOLE_RED_COLOR);
-		std::cout << "[ERROR]: " << message;
-		break;
-	default:
-		assert(false && "Not implemented");
-		break;
-	}
-
-	//reset the color to white
-	ResetConsoleColor();
-	std::cout << "\n";
-}
-
-void App::LogArg(LogType type, const char* format, ...)
-{
-	//print time first
-	//get the current time
-	SetConsoleColor(CONSOLE_GRAY_COLOR);
-	time_t now = time(0);
-	//convert now to string form
-	char buffer[26];
-	ctime_s(buffer, 26, &now);
-	//print the time
-	std::cout << buffer;
-
-	switch (type)
-	{
-	case App::LOG_INFO:
-		std::cout << "[INFO]: ";
-		break;
-	case App::LOG_WARNING:
-		SetConsoleColor(CONSOLE_YELLOW_COLOR);
-		break;
-	case App::LOG_ERROR:
-		SetConsoleColor(CONSOLE_RED_COLOR);
-		break;
-	default:
-		break;
-	}
-
-	va_list args;
-	va_start(args, format);
-	vprintf(format, args);
-	va_end(args);
-
-	//reset the color to white
-	ResetConsoleColor();
-	std::cout << "\n";
-}
-
-void App::ResetConsoleColor()
-{
-	static HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleTextAttribute(hConsole, CONSOLE_WHITE_COLOR);
-}
-
-void App::SetConsoleColor(int color)
-{
-	static HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleTextAttribute(hConsole, color);
+	isRunning = false;
 }
 
 App::~App()
@@ -213,8 +148,8 @@ void frameBufferSizeCallback(GLFWwindow* window, int width, int height) {
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 {
-	static float lastX = 0.0f;
-	static float lastY = 0.0f;
+	static double lastX = 0.0f;
+	static double lastY = 0.0f;
 	static bool firstMouse = true;
 
 	if (firstMouse)
@@ -224,8 +159,8 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 		firstMouse = false;
 	}
 
-	float dx = xpos - lastX;
-	float dy = ypos - lastY;
+	double dx = xpos - lastX;
+	double dy = ypos - lastY;
 
 	lastX = xpos;
 	lastY = ypos;
@@ -241,6 +176,7 @@ void processInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(window, true);
+		app->Stop();
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)

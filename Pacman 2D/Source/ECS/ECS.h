@@ -11,7 +11,7 @@
 #include <queue>
 #include <unordered_map>
 
-#define MAX_ENTITIES 1000
+#define MAX_ENTITIES 5000
 #define MAX_COMPONENTS 32
 
 using Entity = std::uint32_t;
@@ -84,6 +84,8 @@ template <typename T>
 class ComponentArray : public IComponentArray
 {
 public:
+	ComponentArray() = default;
+
 	void InsertData(Entity entity, T component)
 	{
 		assert(entityToIndexMap.find(entity) == entityToIndexMap.end() && "Component added to same entity more than once.");
@@ -253,7 +255,6 @@ public:
 		signatures.insert({ typeName, signature });
 	}
 
-	template <typename T>
 	void EntitySignatureChanged(Entity entity, Signature entitySignature)
 	{
 		for (auto const& pair : systems)
@@ -294,7 +295,7 @@ public:
 	*/
 	Entity CreateEntity()
 	{
-		entityManager->CreateEntity();
+		return entityManager->CreateEntity();
 	}
 
 	void DestroyEntity(Entity entity)
@@ -356,10 +357,10 @@ public:
 	|          System			|
 	+---------------------------+
 	*/
-	template <typename T>
-	void RegisterSystem()
+	template<typename T>
+	std::shared_ptr<T> RegisterSystem()
 	{
-		systemManager->RegisterSystem<T>();
+		return systemManager->RegisterSystem<T>();
 	}
 
 	template <typename T>

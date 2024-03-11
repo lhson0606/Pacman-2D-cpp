@@ -3,22 +3,16 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <memory>
+#include "ECS/ECS.h"
+#include "Render/ShaderManager.h"
+#include <ECS/TileSystem.h>
 
 class App
 {
 public:
-	enum LogType
-	{
-		LOG_INFO, LOG_WARNING, LOG_ERROR
-	};
-
-	inline static int CONSOLE_WHITE_COLOR = 15;
-	inline static int CONSOLE_GRAY_COLOR = 8;
-	inline static int CONSOLE_RED_COLOR = 12;
-	inline static int CONSOLE_YELLOW_COLOR = 14;
-
 	App();
 	int Run();
+	void Stop();
 	~App();
 
 private:
@@ -33,9 +27,8 @@ private:
 	void Draw();
 	void Update(float dt);
 	void OnClose();
-
-	void Log(LogType type, const char* message);
-	void LogArg(LogType type, const char* format, ...);
-	void ResetConsoleColor();
-	void SetConsoleColor(int color);
+	
+	std::shared_ptr<Coordinator> coordinator = std::make_shared<Coordinator>();
+	std::shared_ptr<TileSystem> tileSystem;
+	std::unique_ptr<ShaderManager> shaderManager = std::make_unique<ShaderManager>();;
 };
