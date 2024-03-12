@@ -26,7 +26,7 @@ std::string static readShader(const std::string& path)
 	}
 	catch (std::ifstream::failure e)
 	{
-		std::cout << "Error: shader file not successfully read\n";
+		throw std::exception(("failed to read shader file: " + path).c_str());
 	}
 
 	return shaderCode;
@@ -62,7 +62,7 @@ inline unsigned int static loadTex2D(std::string path)
 	}
 	else if(path.ends_with(".jpg"))
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	}
 	else
 	{
@@ -108,7 +108,7 @@ inline unsigned int static loadPixelStyleTexture(std::string path)
 	}
 	else if (path.ends_with(".jpg"))
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	}
 	else
 	{
@@ -120,4 +120,18 @@ inline unsigned int static loadPixelStyleTexture(std::string path)
 	stbi_image_free(data);
 
 	return texId;
+}
+
+inline static unsigned int genVAO()
+{
+	unsigned int vao;
+	glGenVertexArrays(1, &vao);
+	return vao;
+}
+
+inline static unsigned int genVBO()
+{
+	unsigned int vbo;
+	glGenBuffers(1, &vbo);
+	return vbo;
 }

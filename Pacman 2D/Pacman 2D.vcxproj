@@ -151,8 +151,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Render\Camera.cpp" />
     <ClCompile Include="Includes\dy\Log.cpp" />
-    <ClCompile Include="Source\Render\ShaderManager.cpp" />
+    <ClCompile Include="Source\Manager\ShaderManager.cpp" />
     <ClCompile Include="Source\Map\Map.cpp" />
     <ClCompile Include="Source\App\App.cpp" />
     <ClCompile Include="Source\Main.cpp" />
@@ -162,17 +163,20 @@
     <ClCompile Include="Source\ECS\SpriteSystem.cpp" />
     <ClCompile Include="Source\ECS\TileSystem.cpp" />
     <ClCompile Include="Source\Render\Shader.cpp" />
+    <ClCompile Include="Source\Manager\TextureManger.cpp" />
+    <ClCompile Include="Source\Render\Texture.cpp" />
     <ClCompile Include="Vendors\glad.c" />
     <ClCompile Include="Vendors\Includes\glm\detail\glm.cpp" />
     <ClCompile Include="Vendors\Includes\glm\glm.cppm" />
     <ClCompile Include="Vendors\stb_define.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Render\Camera.h" />
     <ClInclude Include="Includes\dy\dyutils.h" />
     <ClInclude Include="Includes\dy\glutils.h" />
     <ClInclude Include="Includes\tileson.hpp" />
     <ClInclude Include="Includes\dy\Log.h" />
-    <ClInclude Include="Source\Render\ShaderManager.h" />
+    <ClInclude Include="Source\Manager\ShaderManager.h" />
     <ClInclude Include="Source\Map\Map.h" />
     <ClInclude Include="Source\App\App.h" />
     <ClInclude Include="Source\ECS\ECS.h" />
@@ -182,6 +186,8 @@
     <ClInclude Include="Source\ECS\SpriteSystem.h" />
     <ClInclude Include="Source\ECS\TileSystem.h" />
     <ClInclude Include="Source\Render\Shader.h" />
+    <ClInclude Include="Source\Manager\TextureManger.h" />
+    <ClInclude Include="Source\Render\Texture.h" />
     <ClInclude Include="Vendors\Includes\assimp\aabb.h" />
     <ClInclude Include="Vendors\Includes\assimp\ai_assert.h" />
     <ClInclude Include="Vendors\Includes\assimp\anim.h" />

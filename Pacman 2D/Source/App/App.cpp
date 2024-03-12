@@ -112,15 +112,33 @@ void App::OnCreate()
 	tileSystem = coordinator->RegisterSystem<TileSystem>();
 	tileSystem->SetCoordinator(coordinator);
 
+	Signature tileSystemSignature;
+	tileSystemSignature.set(coordinator->GetComponentType<TransformComponent>());
+	tileSystemSignature.set(coordinator->GetComponentType<TileComponent>());
+	coordinator->SetSystemSignature<TileSystem>(tileSystemSignature);
+
+	//load the shaders
+	shaderManager->HardLoadShaders();
+	//load textures
+	textureManager->HardLoadTextures();
 	//load the map
 	std::shared_ptr<Map> map = Map::LoadMap("Resources/Maps/level1.json");
-	tileSystem->InitMap(map);
-	tileSystem->InitMap(map);
+	tileSystem->InitMap(map, cam);
+	tileSystem->LoadProjectMat(shaderManager->GetShader(ShaderManager::ShaderType::MAP), projection);
+	tileSystem->LoadViewMat(shaderManager->GetShader(ShaderManager::ShaderType::MAP), cam.view);
+	tileSystem->LoadTexture(shaderManager->GetShader(ShaderManager::ShaderType::MAP), textureManager->GetTexture(TextureManager::TextureType::MAP));
+
+	//enable alpha blending
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void App::Draw()
 {
-	tileSystem->Draw(shaderManager->GetShader(ShaderManager::ShaderType::MAP));
+	tileSystem->Draw(
+		shaderManager->GetShader(ShaderManager::ShaderType::MAP),
+		textureManager->GetTexture(TextureManager::TextureType::MAP)
+		);
 }
 
 void App::Update(float dt)
@@ -144,6 +162,14 @@ App::~App()
 
 void frameBufferSizeCallback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
+	//this raw pointer is just a reference to the current object not the owner of the object
+	
+	App* app = (App*)glfwGetWindowUserPointer(window);
+	app->aspect = (float)width / height;
+	app->w = width;
+	app->h = height;
+	app->projection = glm::ortho(-app->w / app->h * glm::radians(app->cam.fov), app->w / app->h * glm::radians(app->cam.fov), -1.0f * glm::radians(app->cam.fov), 1.0f * glm::radians(app->cam.fov), 0.1f, 100.f);
+	app->tileSystem->LoadProjectMat(app->shaderManager->GetShader(ShaderManager::ShaderType::MAP), app->projection);
 }
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos)
@@ -151,6 +177,8 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 	static double lastX = 0.0f;
 	static double lastY = 0.0f;
 	static bool firstMouse = true;
+
+	App* app = (App*)glfwGetWindowUserPointer(window);
 
 	if (firstMouse)
 	{
@@ -165,7 +193,8 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 	lastX = xpos;
 	lastY = ypos;
 
-	//cam.processMouseInput(dx, -dy);
+	//app->cam.processMouseInput(dx, -dy);
+	//app->tileSystem->LoadViewMat(app->shaderManager->GetShader(ShaderManager::ShaderType::MAP), app->cam.view);
 }
 
 void processInput(GLFWwindow* window)
@@ -181,32 +210,38 @@ void processInput(GLFWwindow* window)
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		//TODO
+		app->cam.processMove(dy::Camera::FORWARD);
+		app->tileSystem->LoadViewMat(app->shaderManager->GetShader(ShaderManager::ShaderType::MAP), app->cam.view);
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
-		//TODO
+		app->cam.processMove(dy::Camera::BACKWARD);
+		app->tileSystem->LoadViewMat(app->shaderManager->GetShader(ShaderManager::ShaderType::MAP), app->cam.view);
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-		//TODO
+		app->cam.processMove(dy::Camera::LEFT);
+		app->tileSystem->LoadViewMat(app->shaderManager->GetShader(ShaderManager::ShaderType::MAP), app->cam.view);
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-		//TODO
+		app->cam.processMove(dy::Camera::RIGHT);
+		app->tileSystem->LoadViewMat(app->shaderManager->GetShader(ShaderManager::ShaderType::MAP), app->cam.view);
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 	{
-		//TODO
+		app->cam.processMove(dy::Camera::DESCEND);
+		app->tileSystem->LoadViewMat(app->shaderManager->GetShader(ShaderManager::ShaderType::MAP), app->cam.view);
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 	{
-		//TODO
+		app->cam.processMove(dy::Camera::ASCEND);
+		app->tileSystem->LoadViewMat(app->shaderManager->GetShader(ShaderManager::ShaderType::MAP), app->cam.view);
 	}
 }
 
@@ -214,5 +249,8 @@ void mouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	//this raw pointer is just a reference to the current object not the owner of the object
 	App* app = (App*)glfwGetWindowUserPointer(window);
-	//TODO
+	app->cam.processZoom(yoffset);
+	//app->projection = glm::perspective(glm::radians(app->cam.fov), app->w / app->h, 0.1f, 100.0f);
+	app->projection = glm::ortho(-app->w / app->h * glm::radians(app->cam.fov), app->w / app->h * glm::radians(app->cam.fov), -1.0f * glm::radians(app->cam.fov), 1.0f * glm::radians(app->cam.fov), 0.1f, 100.f);
+	app->tileSystem->LoadProjectMat(app->shaderManager->GetShader(ShaderManager::ShaderType::MAP), app->projection);
 }

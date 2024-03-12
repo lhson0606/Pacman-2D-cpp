@@ -4,6 +4,7 @@
 #include <exception>
 #include <sstream>
 #include <glm/gtc/type_ptr.hpp>
+#include <assert.h>
 
 using uint = unsigned int;
 
@@ -73,6 +74,9 @@ void Shader::Init()
 
 	//create shader program
 	id = glCreateProgram();
+
+	assert(id != 0 && "Failed to create shader program, probably GL Context is not created!");
+
 	glAttachShader(id, vertexShader);
 	glAttachShader(id, fragmentShader);
 	glLinkProgram(id);

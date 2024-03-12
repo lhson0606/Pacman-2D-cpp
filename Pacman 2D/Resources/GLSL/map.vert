@@ -1,20 +1,15 @@
 #version 330 core
 
 layout (location = 0) in vec2 aPos;
-layout(location = 1) in int id;
+layout (location = 1) in vec2 aTexCoords;
 
-out vec2 textCoord;
+out vec2 texCoord;
 
-uniform mat4 model[1000];
-uniform int textIndex[1000];
-uniform float scale;
-
-uniform int textWidth;
-uniform int textHeight;
+uniform mat4 projection;
+uniform mat4 view;
 
 void main()
 {
-	gl_Position = model[id] * vec4(aPos.xy, 0.0, 1.0) * scale;
-	textCoord.x = textIndex[id] % textWidth / textWidth;
-	textCoord.y = textIndex[id] / textHeight / textHeight;
+	gl_Position = projection*view*vec4(aPos.xy, 0.0, 1.0);
+	texCoord = aTexCoords;
 }
