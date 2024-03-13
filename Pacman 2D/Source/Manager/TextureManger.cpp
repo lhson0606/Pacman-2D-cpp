@@ -1,4 +1,4 @@
-#include "TextureManger.h"
+#include "TextureManager.h"
 #include <exception>
 #include <assert.h>
 #include "dy/Log.h"

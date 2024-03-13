@@ -153,7 +153,7 @@ void GhostSystem::SetCoordinator(std::shared_ptr<Coordinator> coordinator)
 
 void GhostSystem::CreateGhost(GhostType type, glm::vec3 startPos)
 {
-	auto ghost = coordinator->CreateEntity();
+	auto newGhost = coordinator->CreateEntity();
 
 	GhostComponent ghostComponent;
 
@@ -179,17 +179,16 @@ void GhostSystem::CreateGhost(GhostType type, glm::vec3 startPos)
 
 	ghostComponent.startPos = startPos;
 
-	coordinator->AddComponent<GhostComponent>(ghost, ghostComponent);
-	coordinator->AddComponent<TransformComponent>(ghost, TransformComponent{ startPos });
+	coordinator->AddComponent<GhostComponent>(newGhost, ghostComponent);
+	coordinator->AddComponent<TransformComponent>(newGhost, TransformComponent{ startPos });
+
+	ghosts[type] = newGhost;
 }
 
-std::shared_ptr<Coordinator> coordinator;
-uint VAO = 0;
-uint VBO = 0;
-uint EBO = 0;
-
-glm::vec3 ghostHouseInsidePos;
-glm::vec3 ghostHouseOutsidePos;
+Entity GhostSystem::GetGhost(GhostType type)
+{
+	return ghosts[type];
+}
 
 GhostSystem::~GhostSystem()
 {

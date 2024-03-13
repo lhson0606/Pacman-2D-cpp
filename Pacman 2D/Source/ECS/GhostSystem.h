@@ -21,6 +21,41 @@ public:
 
 	//Blinky (red), Pinky (pink), Inky (cyan), and Clyde (orange)
 
+	void Init(std::shared_ptr<Map> map);
+
+	void LoadProjectMat(std::shared_ptr<Shader> shader, glm::mat4 proj);
+
+	void LoadViewMat(std::shared_ptr<Shader> shader, glm::mat4 view);
+
+	void LoadTexture(std::shared_ptr<Shader> shader, std::shared_ptr<Texture> tex);
+
+	void LoadExtra(std::shared_ptr<Shader> shader);
+
+	void Update(float dt);
+
+	void Draw(std::shared_ptr<Shader> shader, std::shared_ptr<Texture> tex);
+
+	void CleanUp();
+
+	void SetCoordinator(std::shared_ptr<Coordinator> coordinator);
+
+	void CreateGhost(GhostType type, glm::vec3 startPos);
+
+	Entity GetGhost(GhostType type);
+
+	~GhostSystem();
+
+private:
+	std::shared_ptr<Coordinator> coordinator;
+	uint VAO = 0;
+	uint VBO = 0;
+	uint EBO = 0;
+
+	glm::vec3 ghostHouseInsidePos;
+	glm::vec3 ghostHouseOutsidePos;
+
+	Entity ghosts[GHOST_COUNT];
+
 	inline static const float VERTICE[] =
 	{
 		//=====01=====
@@ -93,35 +128,4 @@ public:
 		28, 31, 30,
 		28, 30, 29,
 	};
-
-	void Init(std::shared_ptr<Map> map);
-
-	void LoadProjectMat(std::shared_ptr<Shader> shader, glm::mat4 proj);
-
-	void LoadViewMat(std::shared_ptr<Shader> shader, glm::mat4 view);
-
-	void LoadTexture(std::shared_ptr<Shader> shader, std::shared_ptr<Texture> tex);
-
-	void LoadExtra(std::shared_ptr<Shader> shader);
-
-	void Update(float dt);
-
-	void Draw(std::shared_ptr<Shader> shader, std::shared_ptr<Texture> tex);
-
-	void CleanUp();
-
-	void SetCoordinator(std::shared_ptr<Coordinator> coordinator);
-
-	void CreateGhost(GhostType type, glm::vec3 startPos);
-
-	~GhostSystem();
-
-private:
-	std::shared_ptr<Coordinator> coordinator;
-	uint VAO = 0;
-	uint VBO = 0;
-	uint EBO = 0;
-
-	glm::vec3 ghostHouseInsidePos;
-	glm::vec3 ghostHouseOutsidePos;
 };

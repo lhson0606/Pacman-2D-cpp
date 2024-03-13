@@ -50,27 +50,27 @@ void TileSystem::InitMap(std::shared_ptr<Map> map, dy::Camera& cam)
 
 		TileVertex bottomLeft;
 		bottomLeft.x = transform.position.x;
-		bottomLeft.y = transform.position.y - 1;
+		bottomLeft.y = transform.position.y + 1;
 		bottomLeft.u = (float)x / textureWidth;
-		bottomLeft.v = (float)y / textureHeight;
+		bottomLeft.v = 1 - (float)y / textureHeight;
 
 		TileVertex topLeft;
 		topLeft.x = transform.position.x;
 		topLeft.y = transform.position.y;
 		topLeft.u = (float)x / textureWidth;
-		topLeft.v = (float)(y + 8) / textureHeight;
+		topLeft.v = 1 - (float)(y + 8) / textureHeight;
 
 		TileVertex bottomRight;
 		bottomRight.x = transform.position.x + 1;
-		bottomRight.y = transform.position.y - 1;
+		bottomRight.y = transform.position.y + 1;
 		bottomRight.u = (float)(x + 8) / textureWidth;
-		bottomRight.v = (float)y / textureHeight;
+		bottomRight.v = 1 - (float)y / textureHeight;
 
 		TileVertex topRight;
 		topRight.x = transform.position.x + 1;
 		topRight.y = transform.position.y;
 		topRight.u = (float)(x + 8) / textureWidth;
-		topRight.v = (float)(y + 8) / textureHeight;
+		topRight.v = 1 - (float)(y + 8) / textureHeight;
 
 		vertices.push_back(bottomLeft);
 		vertices.push_back(topLeft);

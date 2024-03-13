@@ -7,6 +7,7 @@ void ShaderManager::HardLoadShaders()
 {
 	LoadShaders(MAP, MAP_VERTEX_SHADER_PATH, MAP_FRAGMENT_SHADER_PATH);
 	LoadShaders(GHOST, GHOST_VERTEX_SHADER_PATH, GHOST_FRAGMENT_SHADER_PATH);
+	LoadShaders(DEBUG_PATH, DEBUG_PATH_VERTEX_SHADER_PATH, DEBUG_PATH_FRAGMENT_SHADER_PATH);
 }
 
 void ShaderManager::LoadShaders(ShaderType type, std::string vertexPath, std::string fragmentPath)

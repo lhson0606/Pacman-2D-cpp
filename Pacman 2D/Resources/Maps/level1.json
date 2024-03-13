@@ -106,8 +106,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":205.333333333333,
-                 "y":-26.6666666666667
+                 "x":205.333,
+                 "y":-26.6667
                 }, 
                 {
                  "height":0,
@@ -118,8 +118,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":4.33333333333333,
-                 "y":281.666666666667
+                 "x":4.33333,
+                 "y":281.667
                 }, 
                 {
                  "height":0,
@@ -130,8 +130,20 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":220.333333333333,
+                 "x":220.333,
                  "y":280
+                }, 
+                {
+                 "height":0,
+                 "id":29,
+                 "name":"PlayerStart",
+                 "point":true,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":112,
+                 "y":140
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -142,6 +154,7 @@
         {
          "draworder":"topdown",
          "id":8,
+         "locked":true,
          "name":"UI",
          "objects":[
                 {
@@ -162,14 +175,14 @@
                  "y":132
                 }, 
                 {
-                 "height":22.6666666666666,
+                 "height":22.6667,
                  "id":17,
                  "name":"PlayerLifeCount",
                  "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":97,
-                 "x":3.66666666666667,
+                 "x":3.66667,
                  "y":248
                 }, 
                 {
@@ -180,19 +193,19 @@
                  "type":"",
                  "visible":true,
                  "width":111,
-                 "x":112.666666666667,
-                 "y":248.333333333333
+                 "x":112.667,
+                 "y":248.333
                 }, 
                 {
-                 "height":20.3333333333333,
+                 "height":20.3333,
                  "id":20,
                  "name":"ScoreBoard",
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":62.3333333333333,
-                 "x":38.6666666666667,
-                 "y":-32.6666666666667
+                 "width":62.3333,
+                 "x":38.6667,
+                 "y":-32.6667
                 }, 
                 {
                  "height":38,
@@ -201,7 +214,7 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":124.333333333333,
+                 "width":124.333,
                  "x":55,
                  "y":-77
                 }],
@@ -245,6 +258,7 @@
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
          "height":31,
          "id":7,
+         "locked":true,
          "name":"Tunnel",
          "opacity":1,
          "type":"tilelayer",
@@ -287,6 +301,7 @@
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
          "height":31,
          "id":5,
+         "locked":true,
          "name":"UpBanned",
          "opacity":1,
          "type":"tilelayer",
@@ -329,6 +344,7 @@
             27, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 28],
          "height":31,
          "id":1,
+         "locked":true,
          "name":"Wall",
          "opacity":1,
          "type":"tilelayer",
@@ -371,6 +387,7 @@
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
          "height":31,
          "id":3,
+         "locked":true,
          "name":"Pellet",
          "opacity":1,
          "type":"tilelayer",
@@ -413,6 +430,7 @@
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
          "height":31,
          "id":4,
+         "locked":true,
          "name":"EnergizedPellet",
          "opacity":1,
          "type":"tilelayer",
@@ -422,7 +440,7 @@
          "y":0
         }],
  "nextlayerid":9,
- "nextobjectid":22,
+ "nextobjectid":30,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.10.2",

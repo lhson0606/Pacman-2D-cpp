@@ -9,6 +9,7 @@
 #include <ECS/TransformComponent.h>
 #include <ECS/TileComponent.h>
 #include <ECS/GhostComponent.h>
+#include <ECS/DebugPathComponent.h>
 
 #include "dy/Log.h"
 
@@ -55,6 +56,20 @@ int App::Run()
 	OnClose();
 
 	return 0;
+}
+
+void App::UpdateWindowView()
+{
+	tileSystem->LoadViewMat(shaderManager->GetShader(ShaderManager::ShaderType::MAP), cam.view);
+	ghostSystem->LoadViewMat(shaderManager->GetShader(ShaderManager::ShaderType::GHOST), cam.view);
+	debugSystem->LoadViewMat(shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH), cam.view);
+}
+
+void App::UpdateWindowProjection()
+{
+	tileSystem->LoadProjectMat(shaderManager->GetShader(ShaderManager::ShaderType::MAP), projection);
+	ghostSystem->LoadProjectMat(shaderManager->GetShader(ShaderManager::ShaderType::GHOST), projection);
+	debugSystem->LoadProjectMat(shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH), projection);
 }
 
 int App::Init()
@@ -110,6 +125,7 @@ void App::OnCreate()
 	coordinator->RegisterComponent<SpriteComponent>();
 	coordinator->RegisterComponent<TileComponent>();
 	coordinator->RegisterComponent<GhostComponent>();
+	coordinator->RegisterComponent<DebugPathComponent>();
 
 	tileSystem = coordinator->RegisterSystem<TileSystem>();
 	tileSystem->SetCoordinator(coordinator);
@@ -124,6 +140,12 @@ void App::OnCreate()
 	ghostSystemSignature.set(coordinator->GetComponentType<TransformComponent>());
 	ghostSystemSignature.set(coordinator->GetComponentType<GhostComponent>());
 	coordinator->SetSystemSignature<GhostSystem>(ghostSystemSignature);
+
+	debugSystem = coordinator->RegisterSystem<DebugSystem>();
+	debugSystem->SetCoordinator(coordinator);
+	Signature debugSystemSignature;
+	debugSystemSignature.set(coordinator->GetComponentType<DebugPathComponent>());
+	coordinator->SetSystemSignature<DebugSystem>(debugSystemSignature);
 
 	//load the shaders
 	shaderManager->HardLoadShaders();
@@ -144,6 +166,17 @@ void App::OnCreate()
 	ghostSystem->LoadTexture(shaderManager->GetShader(ShaderManager::ShaderType::GHOST), textureManager->GetTexture(TextureManager::TextureType::GHOST));
 	ghostSystem->LoadExtra(shaderManager->GetShader(ShaderManager::ShaderType::GHOST));
 
+	//init debug system
+	debugSystem->Init();
+	debugSystem->LoadProjectMat(shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH), projection);
+	debugSystem->LoadViewMat(shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH), cam.view);
+	debugSystem->LoadColors(shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH),
+		GhostComponent::BLINKY_COLOR,
+		GhostComponent::PINKY_COLOR,
+		GhostComponent::INKY_COLOR,
+		GhostComponent::CLYDE_COLOR		
+		);
+
 	//enable alpha blending
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -161,6 +194,10 @@ void App::Draw()
 	ghostSystem->Draw(
 		shaderManager->GetShader(ShaderManager::ShaderType::GHOST),
 		textureManager->GetTexture(TextureManager::TextureType::GHOST)
+	);
+
+	debugSystem->Draw(
+		shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH)
 	);
 }
 
@@ -192,8 +229,7 @@ void frameBufferSizeCallback(GLFWwindow* window, int width, int height) {
 	app->w = width;
 	app->h = height;
 	app->projection = glm::ortho(-app->w / app->h * glm::radians(app->cam.fov), app->w / app->h * glm::radians(app->cam.fov), -1.0f * glm::radians(app->cam.fov), 1.0f * glm::radians(app->cam.fov), 0.1f, 100.f);
-	app->tileSystem->LoadProjectMat(app->shaderManager->GetShader(ShaderManager::ShaderType::MAP), app->projection);
-	app->ghostSystem->LoadProjectMat(app->shaderManager->GetShader(ShaderManager::ShaderType::GHOST), app->projection);
+	app->UpdateWindowProjection();
 }
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos)
@@ -235,44 +271,34 @@ void processInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
 		app->cam.processMove(dy::Camera::FORWARD);
-		app->tileSystem->LoadViewMat(app->shaderManager->GetShader(ShaderManager::ShaderType::MAP), app->cam.view);
-		app->ghostSystem->LoadViewMat(app->shaderManager->GetShader(ShaderManager::ShaderType::GHOST), app->cam.view);
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
 		app->cam.processMove(dy::Camera::BACKWARD);
-		app->tileSystem->LoadViewMat(app->shaderManager->GetShader(ShaderManager::ShaderType::MAP), app->cam.view);
-		app->ghostSystem->LoadViewMat(app->shaderManager->GetShader(ShaderManager::ShaderType::GHOST), app->cam.view);
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
 		app->cam.processMove(dy::Camera::LEFT);
-		app->tileSystem->LoadViewMat(app->shaderManager->GetShader(ShaderManager::ShaderType::MAP), app->cam.view);
-		app->ghostSystem->LoadViewMat(app->shaderManager->GetShader(ShaderManager::ShaderType::GHOST), app->cam.view);
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
 		app->cam.processMove(dy::Camera::RIGHT);
-		app->tileSystem->LoadViewMat(app->shaderManager->GetShader(ShaderManager::ShaderType::MAP), app->cam.view);
-		app->ghostSystem->LoadViewMat(app->shaderManager->GetShader(ShaderManager::ShaderType::GHOST), app->cam.view);
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 	{
 		app->cam.processMove(dy::Camera::DESCEND);
-		app->tileSystem->LoadViewMat(app->shaderManager->GetShader(ShaderManager::ShaderType::MAP), app->cam.view);
-		app->ghostSystem->LoadViewMat(app->shaderManager->GetShader(ShaderManager::ShaderType::GHOST), app->cam.view);
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 	{
 		app->cam.processMove(dy::Camera::ASCEND);
-		app->tileSystem->LoadViewMat(app->shaderManager->GetShader(ShaderManager::ShaderType::MAP), app->cam.view);
-		app->ghostSystem->LoadViewMat(app->shaderManager->GetShader(ShaderManager::ShaderType::GHOST), app->cam.view);
 	}
+
+	app->UpdateWindowView();
 }
 
 void mouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
@@ -282,6 +308,5 @@ void mouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 	app->cam.processZoom(yoffset);
 	//app->projection = glm::perspective(glm::radians(app->cam.fov), app->w / app->h, 0.1f, 100.0f);
 	app->projection = glm::ortho(-app->w / app->h * glm::radians(app->cam.fov), app->w / app->h * glm::radians(app->cam.fov), -1.0f * glm::radians(app->cam.fov), 1.0f * glm::radians(app->cam.fov), 0.1f, 100.f);
-	app->tileSystem->LoadProjectMat(app->shaderManager->GetShader(ShaderManager::ShaderType::MAP), app->projection);
-	app->ghostSystem->LoadProjectMat(app->shaderManager->GetShader(ShaderManager::ShaderType::GHOST), app->projection);
+	app->UpdateWindowProjection();
 }

@@ -75,6 +75,12 @@
     <ClCompile Include="Source\ECS\GhostComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\ECS\DebugSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\DebugPathComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vendors\Includes\assimp\Compiler\poppack1.h">
@@ -1244,7 +1250,7 @@
     <ClInclude Include="Includes\dy\Log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Manager\TextureManger.h">
+    <ClInclude Include="Source\Manager\TextureManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\Render\Texture.h">
@@ -1257,6 +1263,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\ECS\GhostComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\DebugSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\DebugPathComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1707,6 +1719,8 @@
     <None Include="Resources\GLSL\ghost.vert" />
     <None Include="Resources\GLSL\ghost.frag" />
     <None Include="Resources\Textures\ghost.aseprite" />
+    <None Include="Resources\GLSL\path.vert" />
+    <None Include="Resources\GLSL\path.frag" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Vendors\Libs\assimp-vc143-mtd.lib" />

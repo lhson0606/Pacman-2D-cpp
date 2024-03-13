@@ -5,9 +5,10 @@
 #include <memory>
 #include "ECS/ECS.h"
 #include "Manager/ShaderManager.h"
-#include "Manager/TextureManger.h"
+#include "Manager/TextureManager.h"
 #include <ECS/TileSystem.h>
 #include <ECS/GhostSystem.h>
+#include <ECS/DebugSystem.h>
 #include "Render/Camera.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -32,8 +33,12 @@ public:
 	std::shared_ptr<Coordinator> coordinator = std::make_shared<Coordinator>();
 	std::shared_ptr<TileSystem> tileSystem;
 	std::shared_ptr<GhostSystem> ghostSystem;
+	std::shared_ptr<DebugSystem> debugSystem;
 	std::unique_ptr<ShaderManager> shaderManager = std::make_unique<ShaderManager>();
 	std::unique_ptr<TextureManager> textureManager = std::make_unique<TextureManager>();
+
+	void UpdateWindowView();
+	void UpdateWindowProjection();
 private:
 	const char* title = "We are sure to drown";
 	GLFWwindow* window = nullptr;

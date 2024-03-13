@@ -151,6 +151,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\ECS\DebugPathComponent.cpp" />
+    <ClCompile Include="Source\ECS\DebugSystem.cpp" />
     <ClCompile Include="Source\ECS\GhostComponent.cpp" />
     <ClCompile Include="Source\ECS\GhostSystem.cpp" />
     <ClCompile Include="Source\Render\Camera.cpp" />
@@ -173,6 +175,8 @@
     <ClCompile Include="Vendors\stb_define.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\ECS\DebugPathComponent.h" />
+    <ClInclude Include="Source\ECS\DebugSystem.h" />
     <ClInclude Include="Source\ECS\GhostComponent.h" />
     <ClInclude Include="Source\ECS\GhostSystem.h" />
     <ClInclude Include="Source\Render\Camera.h" />
@@ -190,7 +194,7 @@
     <ClInclude Include="Source\ECS\SpriteSystem.h" />
     <ClInclude Include="Source\ECS\TileSystem.h" />
     <ClInclude Include="Source\Render\Shader.h" />
-    <ClInclude Include="Source\Manager\TextureManger.h" />
+    <ClInclude Include="Source\Manager\TextureManager.h" />
     <ClInclude Include="Source\Render\Texture.h" />
     <ClInclude Include="Vendors\Includes\assimp\aabb.h" />
     <ClInclude Include="Vendors\Includes\assimp\ai_assert.h" />
@@ -574,6 +578,8 @@
     <None Include="Resources\GLSL\ghost.vert" />
     <None Include="Resources\GLSL\map.frag" />
     <None Include="Resources\GLSL\map.vert" />
+    <None Include="Resources\GLSL\path.frag" />
+    <None Include="Resources\GLSL\path.vert" />
     <None Include="Resources\Maps\level1.json" />
     <None Include="Resources\Maps\pacman_map_1.tmx" />
     <None Include="Resources\Textures\ghost.aseprite" />
