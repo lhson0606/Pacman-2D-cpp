@@ -14,13 +14,16 @@ public:
 	enum TextureType
 	{
 		MAP,
+		GHOST,
 	};
 
 	inline const static std::string MAP_TEXTURE_PATH = "Resources/Textures/pacman_map.png";
+	inline const static std::string GHOST_TEXTURE_PATH = "Resources/Textures/ghost.png";
 
 	void HardLoadTextures()
 	{
 		LoadTexture(MAP, MAP_TEXTURE_PATH);
+		LoadTexture(GHOST, GHOST_TEXTURE_PATH);
 	}
 
 	void LoadTexture(TextureType type, const std::string& path)

@@ -17,11 +17,23 @@ public:
 		position.x = x;
 		position.y = y;
 		position.z = z;
+
+		modelMatrix = glm::translate(modelMatrix, position);
 	}
 
 	TransformComponent(const glm::vec3& position)
 	{
 		this->position = position;
+
+		modelMatrix = glm::translate(modelMatrix, position);
 	}
+
+	glm::mat4 GetModelMatrix()
+	{
+		return modelMatrix;
+	}
+
+private:
+	glm::mat4 modelMatrix = glm::mat4(1.0f);
 };
 

@@ -69,6 +69,12 @@
     <ClCompile Include="Source\Render\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\ECS\GhostSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\GhostComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vendors\Includes\assimp\Compiler\poppack1.h">
@@ -1247,6 +1253,12 @@
     <ClInclude Include="Source\Render\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\ECS\GhostSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\GhostComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Vendors\Includes\assimp\color4.inl">
@@ -1692,6 +1704,9 @@
     <None Include="Resources\Maps\pacman_map_1.tmx" />
     <None Include="Resources\GLSL\map.frag" />
     <None Include="Resources\GLSL\map.vert" />
+    <None Include="Resources\GLSL\ghost.vert" />
+    <None Include="Resources\GLSL\ghost.frag" />
+    <None Include="Resources\Textures\ghost.aseprite" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Vendors\Libs\assimp-vc143-mtd.lib" />
@@ -1711,6 +1726,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="Resources\Textures\UpBanned.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\Textures\ghost.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

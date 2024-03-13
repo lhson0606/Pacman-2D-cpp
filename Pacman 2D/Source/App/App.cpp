@@ -8,6 +8,7 @@
 #include <ECS/SpriteComponent.h>
 #include <ECS/TransformComponent.h>
 #include <ECS/TileComponent.h>
+#include <ECS/GhostComponent.h>
 
 #include "dy/Log.h"
 
@@ -108,19 +109,27 @@ void App::OnCreate()
 	coordinator->RegisterComponent<TransformComponent>();
 	coordinator->RegisterComponent<SpriteComponent>();
 	coordinator->RegisterComponent<TileComponent>();
+	coordinator->RegisterComponent<GhostComponent>();
 
 	tileSystem = coordinator->RegisterSystem<TileSystem>();
 	tileSystem->SetCoordinator(coordinator);
-
 	Signature tileSystemSignature;
 	tileSystemSignature.set(coordinator->GetComponentType<TransformComponent>());
 	tileSystemSignature.set(coordinator->GetComponentType<TileComponent>());
 	coordinator->SetSystemSignature<TileSystem>(tileSystemSignature);
 
+	ghostSystem = coordinator->RegisterSystem<GhostSystem>();
+	ghostSystem->SetCoordinator(coordinator);
+	Signature ghostSystemSignature;
+	ghostSystemSignature.set(coordinator->GetComponentType<TransformComponent>());
+	ghostSystemSignature.set(coordinator->GetComponentType<GhostComponent>());
+	coordinator->SetSystemSignature<GhostSystem>(ghostSystemSignature);
+
 	//load the shaders
 	shaderManager->HardLoadShaders();
 	//load textures
 	textureManager->HardLoadTextures();
+
 	//load the map
 	std::shared_ptr<Map> map = Map::LoadMap("Resources/Maps/level1.json");
 	tileSystem->InitMap(map, cam);
@@ -128,9 +137,18 @@ void App::OnCreate()
 	tileSystem->LoadViewMat(shaderManager->GetShader(ShaderManager::ShaderType::MAP), cam.view);
 	tileSystem->LoadTexture(shaderManager->GetShader(ShaderManager::ShaderType::MAP), textureManager->GetTexture(TextureManager::TextureType::MAP));
 
+	//load the ghost
+	ghostSystem->Init(map);
+	ghostSystem->LoadProjectMat(shaderManager->GetShader(ShaderManager::ShaderType::GHOST), projection);
+	ghostSystem->LoadViewMat(shaderManager->GetShader(ShaderManager::ShaderType::GHOST), cam.view);
+	ghostSystem->LoadTexture(shaderManager->GetShader(ShaderManager::ShaderType::GHOST), textureManager->GetTexture(TextureManager::TextureType::GHOST));
+	ghostSystem->LoadExtra(shaderManager->GetShader(ShaderManager::ShaderType::GHOST));
+
 	//enable alpha blending
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//disable depth testing
+	glDisable(GL_DEPTH_TEST);
 }
 
 void App::Draw()
@@ -138,6 +156,11 @@ void App::Draw()
 	tileSystem->Draw(
 		shaderManager->GetShader(ShaderManager::ShaderType::MAP),
 		textureManager->GetTexture(TextureManager::TextureType::MAP)
+		);
+
+	ghostSystem->Draw(
+		shaderManager->GetShader(ShaderManager::ShaderType::GHOST),
+		textureManager->GetTexture(TextureManager::TextureType::GHOST)
 		);
 }
 

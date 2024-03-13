@@ -217,6 +217,7 @@ class System
 {
 public:
 	std::set<Entity> entities;
+	virtual ~System() = default;
 };
 
 class SystemManager

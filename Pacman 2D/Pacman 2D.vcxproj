@@ -151,6 +151,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\ECS\GhostComponent.cpp" />
+    <ClCompile Include="Source\ECS\GhostSystem.cpp" />
     <ClCompile Include="Source\Render\Camera.cpp" />
     <ClCompile Include="Includes\dy\Log.cpp" />
     <ClCompile Include="Source\Manager\ShaderManager.cpp" />
@@ -171,6 +173,8 @@
     <ClCompile Include="Vendors\stb_define.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\ECS\GhostComponent.h" />
+    <ClInclude Include="Source\ECS\GhostSystem.h" />
     <ClInclude Include="Source\Render\Camera.h" />
     <ClInclude Include="Includes\dy\dyutils.h" />
     <ClInclude Include="Includes\dy\glutils.h" />
@@ -566,10 +570,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="assimp-vc143-mtd.dll" />
+    <None Include="Resources\GLSL\ghost.frag" />
+    <None Include="Resources\GLSL\ghost.vert" />
     <None Include="Resources\GLSL\map.frag" />
     <None Include="Resources\GLSL\map.vert" />
     <None Include="Resources\Maps\level1.json" />
     <None Include="Resources\Maps\pacman_map_1.tmx" />
+    <None Include="Resources\Textures\ghost.aseprite" />
     <None Include="Vendors\Includes\assimp\color4.inl" />
     <None Include="Vendors\Includes\assimp\material.inl" />
     <None Include="Vendors\Includes\assimp\matrix3x3.inl" />
@@ -723,6 +730,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\energized_pellet.png" />
+    <Image Include="Resources\Textures\ghost.png" />
     <Image Include="Resources\Textures\pacman_map.png" />
     <Image Include="Resources\Textures\pellet.png" />
     <Image Include="Resources\Textures\Tunnel.png" />

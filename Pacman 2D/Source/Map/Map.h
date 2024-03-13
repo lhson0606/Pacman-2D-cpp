@@ -14,6 +14,26 @@ using uint8 = uint8_t;
 class Map
 {
 public:
+
+	//hard load constants
+	inline static const std::string WALL_LAYER = "Wall";
+	inline static const std::string ENERGIZED_PELLET_LAYER = "EnergizedPellet";
+	inline static const std::string PELLET_LAYER = "Pellet";
+	inline static const std::string UP_BANNED_LAYER = "UpBanned";
+	inline static const std::string TUNNEL_LAYER = "Tunnel";
+	inline static const std::string POSITION_LAYER = "Position";
+	inline static const std::string UI_LAYER = "UI";
+
+	inline static const std::string BLINKY_START_POS_NAME = "RedStart";
+	inline static const std::string PINKY_START_POS_NAME = "PinkyStart";
+	inline static const std::string INKY_START_POS_NAME = "LimeStart";
+	inline static const std::string CLYDE_START_POS_NAME = "OrangeStart";
+
+	inline static const std::string PLAYER_START_POS_NAME = "PlayerStart";
+	inline static const std::string GHOST_HOUSE_INSIDE_POS_NAME = "GhostHouseInside";
+	inline static const std::string GHOST_HOUSE_OUTSIDE_POS_NAME = "GhostHouseOutside";
+
+
 	Map()
 	{
 		path = nullptr;

@@ -7,6 +7,7 @@
 #include "Manager/ShaderManager.h"
 #include "Manager/TextureManger.h"
 #include <ECS/TileSystem.h>
+#include <ECS/GhostSystem.h>
 #include "Render/Camera.h"
 
 class App
@@ -28,6 +29,7 @@ public:
 	//glm::mat4 projection = glm::perspective(glm::radians(cam.fov), w / h, 0.1f, 100.0f);
 	std::shared_ptr<Coordinator> coordinator = std::make_shared<Coordinator>();
 	std::shared_ptr<TileSystem> tileSystem;
+	std::shared_ptr<GhostSystem> ghostSystem;
 	std::unique_ptr<ShaderManager> shaderManager = std::make_unique<ShaderManager>();
 	std::unique_ptr<TextureManager> textureManager = std::make_unique<TextureManager>();
 private:

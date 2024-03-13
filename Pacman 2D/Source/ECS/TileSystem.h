@@ -39,15 +39,6 @@ class TileSystem:public System
 
 	using TileData = std::map<std::tuple<int, int>, tson::Tile*>;
 public:
-	//hard load constants
-	inline static const std::string WALL_LAYER = "Wall";
-	inline static const std::string ENERGIZED_PELLET_LAYER = "EnergizedPellet";
-	inline static const std::string PELLET_LAYER = "Pellet";
-	inline static const std::string UP_BANNED_LAYER = "UpBanned";
-	inline static const std::string TUNNEL_LAYER = "Tunnel";
-	inline static const std::string POSITION_LAYER = "Position";
-	inline static const std::string UI_LAYER = "UI";
-
 	TileSystem() = default;
 
 	void SetCoordinator(std::shared_ptr<Coordinator> coordinator)
@@ -61,9 +52,9 @@ public:
 
 		tileSize = map->GetTileSize();
 
-		auto wall = map->data->getLayer(WALL_LAYER);
-		auto position = map->data->getLayer(POSITION_LAYER);
-		auto mapCenter = position->firstObj("GhostHouseInside");
+		auto wall = map->data->getLayer(Map::WALL_LAYER);
+		auto position = map->data->getLayer(Map::POSITION_LAYER);
+		auto mapCenter = position->firstObj(Map::GHOST_HOUSE_INSIDE_POS_NAME);
 
 		assert(wall != nullptr);
 		assert(position != nullptr);
@@ -151,37 +142,35 @@ public:
 		glEnableVertexAttribArray(0);
 	}
 
-	void LoadProjectMat(Shader& shader, glm::mat4 proj)
+	void LoadProjectMat(std::shared_ptr<Shader> shader, glm::mat4 proj)
 	{
-		shader.Use();
-		shader.SetMat4("projection", proj);
-		shader.Stop();
+		shader->Use();
+		shader->SetMat4("projection", proj);
+		shader->Stop();
 	}
 
-	void LoadViewMat(Shader& shader, glm::mat4 view)
+	void LoadViewMat(std::shared_ptr<Shader> shader, glm::mat4 view)
 	{
-		shader.Use();
-		shader.SetMat4("view", view);
-		shader.Stop();
+		shader->Use();
+		shader->SetMat4("view", view);
+		shader->Stop();
 	}
 
-	void LoadTexture(Shader& shader, std::shared_ptr<Texture> tex)
+	void LoadTexture(std::shared_ptr<Shader> shader, std::shared_ptr<Texture> tex)
 	{
-		shader.Use();
-		shader.SetInt("texture1", 0);
-		shader.Stop();
+		shader->Use();
+		shader->SetInt("texture1", 0);
+		shader->Stop();
 	}
 
-	void Draw(Shader& shader, std::shared_ptr<Texture> tex)
+	void Draw(std::shared_ptr<Shader> shader, std::shared_ptr<Texture> tex)
 	{
-		
-		shader.Use();
+		shader->Use();
 		tex->Attach(0);
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
-		shader.Stop();
-
+		shader->Stop();
 	}
 
 private:
