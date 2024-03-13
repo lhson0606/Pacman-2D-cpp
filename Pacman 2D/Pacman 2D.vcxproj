@@ -154,7 +154,7 @@
     <ClCompile Include="Source\ECS\GhostComponent.cpp" />
     <ClCompile Include="Source\ECS\GhostSystem.cpp" />
     <ClCompile Include="Source\Render\Camera.cpp" />
-    <ClCompile Include="Includes\dy\Log.cpp" />
+    <ClCompile Include="Source\Utility\Log.cpp" />
     <ClCompile Include="Source\Manager\ShaderManager.cpp" />
     <ClCompile Include="Source\Map\Map.cpp" />
     <ClCompile Include="Source\App\App.cpp" />

@@ -6,8 +6,6 @@
 #include <exception>
 #include "dy/Log.h"
 
-class App;
-
 #include <stdint.h>
 using uint8 = uint8_t;
 
@@ -33,12 +31,7 @@ public:
 	inline static const std::string GHOST_HOUSE_INSIDE_POS_NAME = "GhostHouseInside";
 	inline static const std::string GHOST_HOUSE_OUTSIDE_POS_NAME = "GhostHouseOutside";
 
-
-	Map()
-	{
-		path = nullptr;
-		data = nullptr;
-	}
+	Map();
 
 	std::unique_ptr<tson::Map> data;
 
@@ -75,9 +68,9 @@ public:
 		return map;
 	}
 
-	int GetWidth() const { return width; }
-	int GetHeight() const { return height; }
-	int GetTileSize() const { return tileSize; }
+	int GetWidth() const;
+	int GetHeight() const;
+	int GetTileSize() const;
 
 	~Map() {};
 
@@ -88,4 +81,3 @@ private:
 	uint8 height;
 	float scale = 0.1f;
 };
-

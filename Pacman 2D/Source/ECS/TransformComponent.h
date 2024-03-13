@@ -1,7 +1,6 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 class TransformComponent
 {
@@ -12,28 +11,12 @@ public:
 
 	TransformComponent() = default;
 
-	TransformComponent(float x, float y, float z)
-	{
-		position.x = x;
-		position.y = y;
-		position.z = z;
+	TransformComponent(float x, float y, float z);
 
-		modelMatrix = glm::translate(modelMatrix, position);
-	}
+	TransformComponent(const glm::vec3& position);
 
-	TransformComponent(const glm::vec3& position)
-	{
-		this->position = position;
-
-		modelMatrix = glm::translate(modelMatrix, position);
-	}
-
-	glm::mat4 GetModelMatrix()
-	{
-		return modelMatrix;
-	}
+	glm::mat4 GetModelMatrix();
 
 private:
 	glm::mat4 modelMatrix = glm::mat4(1.0f);
 };
-

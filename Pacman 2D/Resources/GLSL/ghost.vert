@@ -35,13 +35,13 @@ void main()
 	if(iPartId == 0)
     {
 		texCoord.x = aTexCoords.x + texRowStride*ghosts[iGhostId].body;
-	    texCoord.y = aTexCoords.y + texColStride*ghosts[iGhostId].body;
 		ghostColor = ghosts[iGhostId].color;
 	}
 	else
     {
 		texCoord.x = aTexCoords.x + texRowStride*ghosts[iGhostId].eye;
-	    texCoord.y = aTexCoords.y + texColStride*ghosts[iGhostId].eye;
         ghostColor = vec3(1.0, 1.0, 1.0);
     }
+
+	texCoord.y = aTexCoords.y + texColStride*iPartId;
 }

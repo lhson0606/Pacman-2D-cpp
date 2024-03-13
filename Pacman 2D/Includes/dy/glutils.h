@@ -37,7 +37,7 @@ inline unsigned int static loadTex2D(std::string path)
 	unsigned int texId = 0;
 	int w, h, channels;
 	unsigned char* data;
-	
+
 	stbi_set_flip_vertically_on_load(true);
 	data = stbi_load(path.c_str(), &w, &h, &channels, 0);
 
@@ -56,11 +56,11 @@ inline unsigned int static loadTex2D(std::string path)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	if (path.ends_with(".png") )
+	if (path.ends_with(".png"))
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	}
-	else if(path.ends_with(".jpg"))
+	else if (path.ends_with(".jpg"))
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	}
@@ -68,7 +68,7 @@ inline unsigned int static loadTex2D(std::string path)
 	{
 		throw std::exception("unsupported image format");
 	}
-	
+
 	glGenerateMipmap(GL_TEXTURE_2D);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -84,7 +84,7 @@ inline unsigned int static loadPixelStyleTexture(std::string path)
 	int w, h, channels;
 	unsigned char* data;
 
-	stbi_set_flip_vertically_on_load(true);
+	stbi_set_flip_vertically_on_load(false);
 	data = stbi_load(path.c_str(), &w, &h, &channels, 0);
 
 	if (!data)

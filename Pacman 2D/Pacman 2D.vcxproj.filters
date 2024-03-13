@@ -57,7 +57,7 @@
     <ClCompile Include="Source\Manager\ShaderManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Includes\dy\Log.cpp">
+    <ClCompile Include="Source\Utility\Log.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\Manager\TextureManger.cpp">

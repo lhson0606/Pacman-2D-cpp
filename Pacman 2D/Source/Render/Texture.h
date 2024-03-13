@@ -1,38 +1,20 @@
 #pragma once
 
 #include "dy/dyutils.h"
-#include "dy/glutils.h"
 #include <string>
 
 class Texture
 {
 public:
-	Texture()
-	{
-		id = 0;
-	}
+	Texture();
 
-	Texture(uint id)
-	{
-		this->id = id;
-	}
+	Texture(uint id);
 
-	void Attach(uint slot)
-	{
-		glActiveTexture(GL_TEXTURE0 + slot);
-		glBindTexture(GL_TEXTURE_2D, id);
-	}
+	void Attach(uint slot);
 
-	void Detach()
-	{
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
+	void Detach();
 
-	~Texture()
-	{
-		glDeleteTextures(1, &id);
-	}
+	~Texture();
 private:
 	uint id;
 };
-
