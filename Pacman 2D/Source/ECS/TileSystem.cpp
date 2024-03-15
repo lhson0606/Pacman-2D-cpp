@@ -4,6 +4,7 @@
 #include "dy/Log.h"
 #include "ECS/TileComponent.h"
 #include "ECS/TransformComponent.h"
+#include "ECS/TilePositionComponent.h"
 #include "dy/dyutils.h"
 
 void TileSystem::SetCoordinator(std::shared_ptr<Coordinator> coordinator)
@@ -25,7 +26,7 @@ void TileSystem::InitMap(std::shared_ptr<Map> map, dy::Camera& cam)
 	assert(position != nullptr);
 	assert(mapCenter != nullptr);
 
-	DyLogger::LogArg(DyLogger::LOG_INFO, "Map center: %d, %d", mapCenter->getPosition().x, mapCenter->getPosition().y);
+	//DyLogger::LogArg(DyLogger::LOG_INFO, "Map center: %d, %d", mapCenter->getPosition().x, mapCenter->getPosition().y);
 	cam.translate(glm::vec3(mapCenter->getPosition().x / 8, mapCenter->getPosition().y / 8, 0));
 
 	int w = map->GetWidth();
@@ -155,7 +156,7 @@ void TileSystem::CleanUp()
 
 void TileSystem::HandleWallLayer(TileData tileData, int w, int h)
 {
-	DyLogger::LogArg(DyLogger::LOG_INFO, "Handling wall layer");
+	//DyLogger::LogArg(DyLogger::LOG_INFO, "Handling wall layer");
 
 	for (int x = 0; x < w; ++x)
 	{
@@ -166,8 +167,9 @@ void TileSystem::HandleWallLayer(TileData tileData, int w, int h)
 			if (tile && tile->getId() != 0)
 			{
 				auto entity = coordinator->CreateEntity();
-				coordinator->AddComponent<TileComponent>(entity, { x, y, tile->getId() });
+				coordinator->AddComponent<TileComponent>(entity, {tile->getId() });
 				coordinator->AddComponent<TransformComponent>(entity, { x + 0.0f, y + 0.0f, 0.0f });
+				coordinator->AddComponent<TilePositionComponent>(entity, { x, y });
 			}
 		}
 	}

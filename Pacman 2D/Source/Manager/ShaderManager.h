@@ -12,6 +12,7 @@ public:
 		MAP,
 		GHOST,
 		DEBUG_PATH,
+		TARGET_TILE,
 	};
 
 	inline const static std::string MAP_VERTEX_SHADER_PATH = "Resources/GLSL/map.vert";
@@ -20,6 +21,8 @@ public:
 	inline const static std::string GHOST_FRAGMENT_SHADER_PATH = "Resources/GLSL/ghost.frag";
 	inline const static std::string DEBUG_PATH_VERTEX_SHADER_PATH = "Resources/GLSL/path.vert";
 	inline const static std::string DEBUG_PATH_FRAGMENT_SHADER_PATH = "Resources/GLSL/path.frag";
+	inline const static std::string TARGET_TILE_FRAGMENT_SHADER_PATH = "Resources/GLSL/target_tile.frag";
+	inline const static std::string TARGET_TILE_VERTEX_SHADER_PATH = "Resources/GLSL/target_tile.vert";
 
 	void HardLoadShaders();
 

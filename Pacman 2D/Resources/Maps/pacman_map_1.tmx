@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="28" height="31" tilewidth="8" tileheight="8" infinite="0" nextlayerid="9" nextobjectid="30">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="28" height="31" tilewidth="8" tileheight="8" infinite="0" nextlayerid="9" nextobjectid="31">
  <editorsettings>
-  <export target="pacman_map_1.tmj" format="json"/>
+  <export target="level1.json" format="json"/>
  </editorsettings>
  <tileset firstgid="1" name="pacman_map" tilewidth="8" tileheight="8" tilecount="35" columns="35">
   <image source="../Textures/pacman_map.png" width="280" height="8"/>
@@ -18,7 +18,7 @@
  <tileset firstgid="39" name="Tunnel" tilewidth="8" tileheight="8" tilecount="1" columns="1">
   <image source="../Textures/Tunnel.png" width="8" height="8"/>
  </tileset>
- <objectgroup id="6" name="Position">
+ <objectgroup id="6" name="Position" locked="1">
   <object id="1" name="GhostHouseInside" x="112" y="116">
    <properties>
     <property name="GhostHouseInside" value=""/>

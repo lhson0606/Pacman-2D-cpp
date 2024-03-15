@@ -8,6 +8,7 @@ void TextureManager::HardLoadTextures()
 {
 	LoadTexture(MAP, MAP_TEXTURE_PATH);
 	LoadTexture(GHOST, GHOST_TEXTURE_PATH);
+	LoadTexture(TARGET_TILE, TARGET_TILE_PATH);
 }
 
 void TextureManager::LoadTexture(TextureType type, const std::string& path)

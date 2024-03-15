@@ -19,6 +19,11 @@ public:
 		CLYDE
 	};
 
+	inline static const glm::vec3 UP = { 0, -1, 0 };
+	inline static const glm::vec3 DOWN = { 0, 1, 0 };
+	inline static const glm::vec3 LEFT = { -1, 0, 0 };
+	inline static const glm::vec3 RIGHT = { 1, 0, 0 };
+
 	//Blinky (red), Pinky (pink), Inky (cyan), and Clyde (orange)
 
 	void Init(std::shared_ptr<Map> map);
@@ -43,6 +48,8 @@ public:
 
 	Entity GetGhost(GhostType type);
 
+	void Move(GhostType type, glm::vec3 dir);
+
 	~GhostSystem();
 
 private:
@@ -55,6 +62,12 @@ private:
 	glm::vec3 ghostHouseOutsidePos;
 
 	Entity ghosts[GHOST_COUNT];
+
+	void UpdateGhostUniforms(std::shared_ptr<Shader> shader);
+
+	std::shared_ptr<Map> map;
+
+	const glm::vec3 ghostSpeed = glm::vec3(5,5,5);
 
 	inline static const float VERTICE[] =
 	{

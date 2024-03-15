@@ -1,13 +1,18 @@
 #include "GhostSystem.h"
 #include "ECS/GhostComponent.h"
 #include "ECS/TransformComponent.h"
+#include "ECS/TilePositionComponent.h"
+#include "ECS/MotionComponent.h"
 #include "dy/dyutils.h"
 #include "dy/Log.h"
 #include "dy/glutils.h"
+#include <math.h>
 
 void GhostSystem::Init(std::shared_ptr<Map> map)
 {
 	CleanUp();
+
+	this->map = map;
 
 	tson::Object* ghostStartPos[GHOST_COUNT];
 
@@ -95,36 +100,29 @@ void GhostSystem::LoadExtra(std::shared_ptr<Shader> shader)
 	shader->Use();
 	shader->SetFloat("texRowStride", 0.2f);
 	shader->SetFloat("texColStride", 0.5f);
-
-	int count = 0;
-
-	for (int e : entities)
-	{
-		auto ghost = coordinator->GetComponent<GhostComponent>(e);
-		auto transform = coordinator->GetComponent<TransformComponent>(e);
-
-		std::string currentGhostData = "ghosts[" + std::to_string(count) + "].";
-
-		shader->SetInt(currentGhostData + "body", ghost.part[0]);
-		shader->SetInt(currentGhostData + "eye", ghost.part[1]);
-		shader->SetVec3(currentGhostData + "color", ghost.color);
-		shader->SetMat4(currentGhostData + "model", transform.GetModelMatrix());
-
-		count++;
-		assert(count <= GHOST_COUNT);
-	}
-
 	shader->Stop();
 }
 
 void GhostSystem::Update(float dt)
 {
+	static double accumulativeTime = 0;
+	float t = 0.5f * (1 + sin(accumulativeTime*10));
+	int temp = (t>0.5f)? 1 : 0;
+
+	for (auto e : entities)
+	{
+		auto& ghostComponent = coordinator->GetComponent<GhostComponent>(e);
+		ghostComponent.part[0] = temp;
+	}
+
+	accumulativeTime += dt;
 }
 
 void GhostSystem::Draw(std::shared_ptr<Shader> shader, std::shared_ptr<Texture> tex)
 {
 	shader->Use();
 	tex->Attach(0);
+	UpdateGhostUniforms(shader);
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, sizeof(INDICES) / sizeof(int), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
@@ -150,6 +148,7 @@ void GhostSystem::SetCoordinator(std::shared_ptr<Coordinator> coordinator)
 {
 	this->coordinator = coordinator;
 }
+
 
 void GhostSystem::CreateGhost(GhostType type, glm::vec3 startPos)
 {
@@ -181,6 +180,8 @@ void GhostSystem::CreateGhost(GhostType type, glm::vec3 startPos)
 
 	coordinator->AddComponent<GhostComponent>(newGhost, ghostComponent);
 	coordinator->AddComponent<TransformComponent>(newGhost, TransformComponent{ startPos });
+	coordinator->AddComponent<TilePositionComponent>(newGhost, TilePositionComponent{(int)startPos.x/8, (int)startPos.y/8});
+	coordinator->AddComponent<MotionComponent>(newGhost, MotionComponent{});
 
 	ghosts[type] = newGhost;
 }
@@ -190,7 +191,54 @@ Entity GhostSystem::GetGhost(GhostType type)
 	return ghosts[type];
 }
 
+void GhostSystem::Move(GhostType type, glm::vec3 dir)
+{
+	auto ghost = coordinator->GetComponent<TransformComponent>(ghosts[type]);
+	auto& motion = coordinator->GetComponent<MotionComponent>(ghosts[type]);
+	auto& ghostData = coordinator->GetComponent<GhostComponent>(ghosts[type]);
+	motion.velocity = dir*ghostSpeed;
+
+	//change eye direction
+	if (dir == glm::vec3(1, 0, 0))
+	{
+		ghostData.part[1] = 1;
+	}
+	else if (dir == glm::vec3(-1, 0, 0))
+	{
+		ghostData.part[1] = 3;
+	}
+	else if (dir == glm::vec3(0, 1, 0))
+	{
+		ghostData.part[1] = 2;
+	}
+	else if (dir == glm::vec3(0, -1, 0))
+	{
+		ghostData.part[1] = 0;
+	}
+}
+
 GhostSystem::~GhostSystem()
 {
 	//assume that if our system is deleted, our program is closing, no need to call CleanUp
+}
+
+void GhostSystem::UpdateGhostUniforms(std::shared_ptr<Shader> shader)
+{
+	int count = 0;
+
+	for (int e : entities)
+	{
+		auto ghost = coordinator->GetComponent<GhostComponent>(e);
+		auto transform = coordinator->GetComponent<TransformComponent>(e);
+
+		std::string currentGhostData = "ghosts[" + std::to_string(count) + "].";
+
+		shader->SetInt(currentGhostData + "body", ghost.part[0]);
+		shader->SetInt(currentGhostData + "eye", ghost.part[1]);
+		shader->SetVec3(currentGhostData + "color", ghost.color);
+		shader->SetMat4(currentGhostData + "model", transform.GetModelMatrix());
+
+		count++;
+		assert(count <= GHOST_COUNT);
+	}
 }

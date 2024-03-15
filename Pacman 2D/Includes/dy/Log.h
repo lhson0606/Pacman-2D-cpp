@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 class DyLogger
 {
 public:
@@ -13,6 +15,8 @@ public:
 	inline static int CONSOLE_RED_COLOR = 12;
 	inline static int CONSOLE_YELLOW_COLOR = 14;
 
+	static void Log(const char* message);
+	static void Log(const std::string& message);
 	static void Log(LogType type, const char* message);
 	static void LogArg(LogType type, const char* format, ...);
 	static void ResetConsoleColor();

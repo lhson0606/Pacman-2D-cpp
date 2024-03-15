@@ -10,6 +10,9 @@
 #include <ECS/TileComponent.h>
 #include <ECS/GhostComponent.h>
 #include <ECS/DebugPathComponent.h>
+#include <ECS/TilePositionComponent.h>
+#include <ECS/MotionComponent.h>
+#include <chrono>
 
 #include "dy/Log.h"
 
@@ -34,8 +37,14 @@ int App::Run()
 
 	OnCreate();
 
+	auto startTime = std::chrono::high_resolution_clock::now();
+	auto endTime = std::chrono::high_resolution_clock::now();
+
+	float dt = 0.0f;
+
 	while (!glfwWindowShouldClose(window) && this->isRunning)
 	{
+		startTime = std::chrono::high_resolution_clock::now();
 		//process any input events
 		processInput(window);
 
@@ -45,12 +54,15 @@ int App::Run()
 		glClear(GL_DEPTH_BUFFER_BIT);
 
 		Draw();
-		Update(0.0f);
+		Update(dt);
 
 		//swap buffer for the next frame to be drawn
 		glfwSwapBuffers(window);
 		//check for any events to happen (keyboard, mouse movement, etc)
 		glfwPollEvents();
+		startTime = endTime;
+		endTime = std::chrono::high_resolution_clock::now();
+		dt = std::chrono::duration<float>(endTime - startTime).count();
 	}
 
 	OnClose();
@@ -119,19 +131,22 @@ int App::Init()
 	return 0;
 }
 
-void App::OnCreate()
+void App::InitSystems()
 {
 	coordinator->RegisterComponent<TransformComponent>();
 	coordinator->RegisterComponent<SpriteComponent>();
 	coordinator->RegisterComponent<TileComponent>();
 	coordinator->RegisterComponent<GhostComponent>();
 	coordinator->RegisterComponent<DebugPathComponent>();
+	coordinator->RegisterComponent<TilePositionComponent>();
+	coordinator->RegisterComponent<MotionComponent>();
 
 	tileSystem = coordinator->RegisterSystem<TileSystem>();
 	tileSystem->SetCoordinator(coordinator);
 	Signature tileSystemSignature;
 	tileSystemSignature.set(coordinator->GetComponentType<TransformComponent>());
 	tileSystemSignature.set(coordinator->GetComponentType<TileComponent>());
+	tileSystemSignature.set(coordinator->GetComponentType<TilePositionComponent>());
 	coordinator->SetSystemSignature<TileSystem>(tileSystemSignature);
 
 	ghostSystem = coordinator->RegisterSystem<GhostSystem>();
@@ -139,6 +154,7 @@ void App::OnCreate()
 	Signature ghostSystemSignature;
 	ghostSystemSignature.set(coordinator->GetComponentType<TransformComponent>());
 	ghostSystemSignature.set(coordinator->GetComponentType<GhostComponent>());
+	ghostSystemSignature.set(coordinator->GetComponentType<TilePositionComponent>());
 	coordinator->SetSystemSignature<GhostSystem>(ghostSystemSignature);
 
 	debugSystem = coordinator->RegisterSystem<DebugSystem>();
@@ -147,11 +163,22 @@ void App::OnCreate()
 	debugSystemSignature.set(coordinator->GetComponentType<DebugPathComponent>());
 	coordinator->SetSystemSignature<DebugSystem>(debugSystemSignature);
 
+	physicSystem = coordinator->RegisterSystem<PhysicSystem>();
+	physicSystem->SetCoordinator(coordinator);
+	Signature physicSystemSignature;
+	physicSystemSignature.set(coordinator->GetComponentType<TransformComponent>());
+	physicSystemSignature.set(coordinator->GetComponentType<MotionComponent>());
+	coordinator->SetSystemSignature<PhysicSystem>(physicSystemSignature);
+
 	//load the shaders
 	shaderManager->HardLoadShaders();
 	//load textures
 	textureManager->HardLoadTextures();
+}
 
+void App::OnCreate()
+{
+	InitSystems();
 	//load the map
 	std::shared_ptr<Map> map = Map::LoadMap("Resources/Maps/level1.json");
 	tileSystem->InitMap(map, cam);
@@ -177,11 +204,12 @@ void App::OnCreate()
 		GhostComponent::CLYDE_COLOR		
 		);
 
-	//enable alpha blending
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//disable depth testing
 	glDisable(GL_DEPTH_TEST);
+
+	//print terrain debug string
+	DyLogger::LogArg(DyLogger::LOG_INFO, "Terrain: %s", map->GetDebugString().c_str());
 }
 
 void App::Draw()
@@ -203,6 +231,8 @@ void App::Draw()
 
 void App::Update(float dt)
 {
+	ghostSystem->Update(dt);
+	physicSystem->Update(dt);
 }
 
 void App::OnClose()
@@ -268,7 +298,7 @@ void processInput(GLFWwindow* window)
 		app->Stop();
 	}
 
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	/*if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
 		app->cam.processMove(dy::Camera::FORWARD);
 	}
@@ -298,7 +328,30 @@ void processInput(GLFWwindow* window)
 		app->cam.processMove(dy::Camera::ASCEND);
 	}
 
-	app->UpdateWindowView();
+	app->UpdateWindowView();*/
+
+	//testing
+	auto curGhost = GhostSystem::BLINKY;
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	{
+		app->ghostSystem->Move(curGhost, GhostSystem::UP);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		app->ghostSystem->Move(curGhost, GhostSystem::DOWN);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	{
+		app->ghostSystem->Move(curGhost, GhostSystem::LEFT);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	{
+		app->ghostSystem->Move(curGhost, GhostSystem::RIGHT);
+	}
 }
 
 void mouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset)

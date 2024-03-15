@@ -5,11 +5,9 @@
 class TileComponent
 {
 public:
-	int x;
-	int y;
 	uint32_t id;
 
 	TileComponent() = default;
 
-	TileComponent(int x, int y, uint32_t id);
+	TileComponent(uint32_t id);
 };

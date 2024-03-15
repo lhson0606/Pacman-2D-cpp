@@ -4,36 +4,39 @@
 
 void DebugSystem::Init()
 {
-	AddTestingPath();
+	//AddTestingPath();
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
+
+	//create large enough buffer to hold all the vertices
+	std::vector temp(3000, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, temp.size() * sizeof(float), temp.data(), GL_STATIC_DRAW);
 }
 
 void DebugSystem::AddTestingPath()
 {
-	Entity pathEntity = coordinator->CreateEntity();
+	for(int i = 0; i<4; i++)
+	{
+		Entity pathEntity = coordinator->CreateEntity();
 
-	std::vector<crushedpixel::Vec2> points{
-		{ -0.25f, -0.5f  },
-		{ -0.25f,  0.5f  },
-		{  0.25f,  0.25f },
-		{  0.0f,   0.0f  },
-		{  0.25f, -0.25f },
-		{ -0.4f,  -0.25f }
-	};
+		std::vector<crushedpixel::Vec2> points{
+			{ -0.25f + i*0.25f, -0.5f  },
+			{ -0.25f,  0.5f  },
+			{  0.25f,  0.25f },
+			{  0.0f,   0.0f  },
+			{  0.25f, -0.25f + i * 0.25f },
+			{ -0.4f- i * 0.25f,  -0.25f }
+		};
 
-	coordinator->AddComponent<DebugPathComponent>(pathEntity, { points, 0});	
+		coordinator->AddComponent<DebugPathComponent>(pathEntity, { points, (float)i });
+	}
+	
 }
 
 void DebugSystem::Draw(std::shared_ptr<Shader> shader)
 {
-	static bool once = true;
-
-	if (once)
-	{
-		Prepare();
-		once = false;
-	}
+	Prepare();
 
 	shader->Use();
 	glBindVertexArray(VAO);
@@ -63,7 +66,9 @@ void DebugSystem::Prepare()
 
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+	//load new data into the buffer
+	glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), vertices.data());
+	assert(glGetError() == GL_NO_ERROR);
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);

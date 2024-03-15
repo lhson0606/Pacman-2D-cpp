@@ -17,6 +17,13 @@ TransformComponent::TransformComponent(const glm::vec3& position)
 	modelMatrix = glm::translate(modelMatrix, position);
 }
 
+void TransformComponent::Translate(const glm::vec3& translation)
+{
+	position += translation;
+
+	modelMatrix = glm::translate(modelMatrix, translation);
+}
+
 glm::mat4 TransformComponent::GetModelMatrix()
 {
 	return modelMatrix;

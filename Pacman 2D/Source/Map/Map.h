@@ -5,9 +5,12 @@
 #include <memory>
 #include <exception>
 #include "dy/Log.h"
-
 #include <stdint.h>
+#include <bitset>
+
 using uint8 = uint8_t;
+
+#define MAP_MAX_TILE_COUNT 2500 //50x50
 
 class Map
 {
@@ -65,12 +68,18 @@ public:
 		map->width = map->data->getSize().x;
 		map->height = map->data->getSize().y;
 
+		map->InitWallLookUp();
+
 		return map;
 	}
 
 	int GetWidth() const;
 	int GetHeight() const;
 	int GetTileSize() const;
+	void InitWallLookUp();
+	bool IsWall(int x, int y) const;
+	bool IsMoveableByGhost(int x, int y) const;
+	std::string GetDebugString() const;
 
 	~Map() {};
 
@@ -80,4 +89,5 @@ private:
 	uint8 width;
 	uint8 height;
 	float scale = 0.1f;
+	std::bitset<MAP_MAX_TILE_COUNT> wallLookUp{ 0 };
 };

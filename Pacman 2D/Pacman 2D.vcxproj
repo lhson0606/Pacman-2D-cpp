@@ -151,6 +151,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\ECS\PhysicSystem.cpp" />
+    <ClCompile Include="Source\ECS\MotionComponent.cpp" />
     <ClCompile Include="Source\ECS\DebugPathComponent.cpp" />
     <ClCompile Include="Source\ECS\DebugSystem.cpp" />
     <ClCompile Include="Source\ECS\GhostComponent.cpp" />
@@ -169,12 +171,15 @@
     <ClCompile Include="Source\Render\Shader.cpp" />
     <ClCompile Include="Source\Manager\TextureManger.cpp" />
     <ClCompile Include="Source\Render\Texture.cpp" />
+    <ClCompile Include="Source\ECS\TilePositionComponent.cpp" />
     <ClCompile Include="Vendors\glad.c" />
     <ClCompile Include="Vendors\Includes\glm\detail\glm.cpp" />
     <ClCompile Include="Vendors\Includes\glm\glm.cppm" />
     <ClCompile Include="Vendors\stb_define.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\ECS\PhysicSystem.h" />
+    <ClInclude Include="Source\ECS\MotionComponent.h" />
     <ClInclude Include="Source\ECS\DebugPathComponent.h" />
     <ClInclude Include="Source\ECS\DebugSystem.h" />
     <ClInclude Include="Source\ECS\GhostComponent.h" />
@@ -196,6 +201,7 @@
     <ClInclude Include="Source\Render\Shader.h" />
     <ClInclude Include="Source\Manager\TextureManager.h" />
     <ClInclude Include="Source\Render\Texture.h" />
+    <ClInclude Include="Source\ECS\TilePositionComponent.h" />
     <ClInclude Include="Vendors\Includes\assimp\aabb.h" />
     <ClInclude Include="Vendors\Includes\assimp\ai_assert.h" />
     <ClInclude Include="Vendors\Includes\assimp\anim.h" />
@@ -580,9 +586,12 @@
     <None Include="Resources\GLSL\map.vert" />
     <None Include="Resources\GLSL\path.frag" />
     <None Include="Resources\GLSL\path.vert" />
+    <None Include="Resources\GLSL\target_tile.frag" />
+    <None Include="Resources\GLSL\target_tile.vert" />
     <None Include="Resources\Maps\level1.json" />
     <None Include="Resources\Maps\pacman_map_1.tmx" />
     <None Include="Resources\Textures\ghost.aseprite" />
+    <None Include="Resources\Textures\target_tile.aseprite" />
     <None Include="Vendors\Includes\assimp\color4.inl" />
     <None Include="Vendors\Includes\assimp\material.inl" />
     <None Include="Vendors\Includes\assimp\matrix3x3.inl" />
@@ -739,6 +748,7 @@
     <Image Include="Resources\Textures\ghost.png" />
     <Image Include="Resources\Textures\pacman_map.png" />
     <Image Include="Resources\Textures\pellet.png" />
+    <Image Include="Resources\Textures\target_tile.png" />
     <Image Include="Resources\Textures\Tunnel.png" />
     <Image Include="Resources\Textures\UpBanned.png" />
   </ItemGroup>

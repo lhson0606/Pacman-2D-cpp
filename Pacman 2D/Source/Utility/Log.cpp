@@ -4,6 +4,48 @@
 #include <assert.h>
 #include <Windows.h>
 
+void DyLogger::Log(const char* message)
+{
+	//print time first
+	//get the current time
+	SetConsoleColor(CONSOLE_GRAY_COLOR);
+	time_t now = time(0);
+	//convert now to string form
+	char buffer[26];
+	ctime_s(buffer, 26, &now);
+	//print the time
+	std::cout << buffer;
+
+	//print the message
+	SetConsoleColor(CONSOLE_WHITE_COLOR);
+	std::cout << "[INFO]: " << message;
+
+	//reset the color to white
+	ResetConsoleColor();
+	std::cout << "\n";
+}
+
+void DyLogger::Log(const std::string& message)
+{
+	//print time first
+	//get the current time
+	SetConsoleColor(CONSOLE_GRAY_COLOR);
+	time_t now = time(0);
+	//convert now to string form
+	char buffer[26];
+	ctime_s(buffer, 26, &now);
+	//print the time
+	std::cout << buffer;
+
+	//print the message
+	SetConsoleColor(CONSOLE_WHITE_COLOR);
+	std::cout << "[INFO]: " << message;
+
+	//reset the color to white
+	ResetConsoleColor();
+	std::cout << "\n";
+}
+
 void DyLogger::Log(LogType type, const char* message)
 {
 	//print time first

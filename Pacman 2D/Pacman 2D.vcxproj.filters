@@ -81,6 +81,15 @@
     <ClCompile Include="Source\ECS\DebugPathComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\ECS\TilePositionComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\MotionComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\PhysicSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vendors\Includes\assimp\Compiler\poppack1.h">
@@ -1271,6 +1280,15 @@
     <ClInclude Include="Source\ECS\DebugPathComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\ECS\TilePositionComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\MotionComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\PhysicSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Vendors\Includes\assimp\color4.inl">
@@ -1721,6 +1739,9 @@
     <None Include="Resources\Textures\ghost.aseprite" />
     <None Include="Resources\GLSL\path.vert" />
     <None Include="Resources\GLSL\path.frag" />
+    <None Include="Resources\Textures\target_tile.aseprite" />
+    <None Include="Resources\GLSL\target_tile.vert" />
+    <None Include="Resources\GLSL\target_tile.frag" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Vendors\Libs\assimp-vc143-mtd.lib" />
@@ -1743,6 +1764,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="Resources\Textures\ghost.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\Textures\target_tile.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

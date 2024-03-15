@@ -15,6 +15,8 @@ public:
 
 	TransformComponent(const glm::vec3& position);
 
+	void Translate(const glm::vec3& translation);
+
 	glm::mat4 GetModelMatrix();
 
 private:
