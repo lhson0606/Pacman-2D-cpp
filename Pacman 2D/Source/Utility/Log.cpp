@@ -123,6 +123,29 @@ void DyLogger::LogArg(LogType type, const char* format, ...)
 	std::cout << "\n";
 }
 
+void DyLogger::LogArg(const char* format, ...)
+{
+	//print time first
+	//get the current time
+	SetConsoleColor(CONSOLE_GRAY_COLOR);
+	time_t now = time(0);
+	//convert now to string form
+	char buffer[26];
+	ctime_s(buffer, 26, &now);
+	//print the time
+	std::cout << buffer;
+
+	//get the variable arguments
+	va_list args;
+	va_start(args, format);
+	vprintf(format, args);
+	va_end(args);
+
+	//reset the color to white
+	ResetConsoleColor();
+	std::cout << "\n";
+}
+
 void DyLogger::ResetConsoleColor()
 {
 	static HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);

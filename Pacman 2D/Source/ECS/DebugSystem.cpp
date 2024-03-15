@@ -9,7 +9,7 @@ void DebugSystem::Init()
 	glGenBuffers(1, &VBO);
 
 	//create large enough buffer to hold all the vertices
-	std::vector temp(3000, 0);
+	std::vector temp(10000, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, temp.size() * sizeof(float), temp.data(), GL_STATIC_DRAW);
 }
@@ -38,6 +38,9 @@ void DebugSystem::Draw(std::shared_ptr<Shader> shader)
 {
 	Prepare();
 
+	if(!shouldDraw)
+		return;
+
 	shader->Use();
 	glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0, vertexCount);
@@ -58,11 +61,20 @@ void DebugSystem::Prepare()
 		auto& path = coordinator->GetComponent<DebugPathComponent>(e);
 		for (auto& point : path.vertices)
 		{
-			vertices.push_back(point.x*8);
-			vertices.push_back(point.y*8);
+			vertices.push_back(point.x);
+			vertices.push_back(point.y);
 			vertices.push_back(path.id);
 		}
 	}	
+
+	if (vertices.size() == 0)
+	{
+		vertexCount = 0;
+		shouldDraw = false;
+		return;
+	}
+
+	shouldDraw = true;
 
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);

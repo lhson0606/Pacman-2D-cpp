@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <vector>
 
 class GhostComponent
 {
@@ -33,4 +34,7 @@ public:
 	int part[2] = { 0, 0 };
 	glm::vec3 color = { 1,1,1 };
 	glm::vec3 startPos = { 0,0,0 };
+	std::vector<glm::ivec2> path;
+
+	GhostComponent();
 };

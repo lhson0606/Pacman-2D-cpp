@@ -155,6 +155,7 @@ void App::InitSystems()
 	ghostSystemSignature.set(coordinator->GetComponentType<TransformComponent>());
 	ghostSystemSignature.set(coordinator->GetComponentType<GhostComponent>());
 	ghostSystemSignature.set(coordinator->GetComponentType<TilePositionComponent>());
+	ghostSystemSignature.set(coordinator->GetComponentType<DebugPathComponent>());
 	coordinator->SetSystemSignature<GhostSystem>(ghostSystemSignature);
 
 	debugSystem = coordinator->RegisterSystem<DebugSystem>();
@@ -219,13 +220,13 @@ void App::Draw()
 		textureManager->GetTexture(TextureManager::TextureType::MAP)
 	);
 
+	debugSystem->Draw(
+		shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH)
+	);
+
 	ghostSystem->Draw(
 		shaderManager->GetShader(ShaderManager::ShaderType::GHOST),
 		textureManager->GetTexture(TextureManager::TextureType::GHOST)
-	);
-
-	debugSystem->Draw(
-		shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH)
 	);
 }
 

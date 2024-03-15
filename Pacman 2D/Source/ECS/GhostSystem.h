@@ -65,6 +65,10 @@ private:
 
 	void UpdateGhostUniforms(std::shared_ptr<Shader> shader);
 
+	void UpdateDebugGhostPath();
+
+	void UpdateGhostEyeDir(Entity ghost, const glm::vec3 dir);
+
 	std::shared_ptr<Map> map;
 
 	const glm::vec3 ghostSpeed = glm::vec3(5,5,5);

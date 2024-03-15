@@ -11,6 +11,7 @@
 using uint8 = uint8_t;
 
 #define MAP_MAX_TILE_COUNT 2500 //50x50
+#define TILE_OFFSET 0.5f
 
 class Map
 {

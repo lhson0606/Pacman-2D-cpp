@@ -23,5 +23,6 @@ private:
 	uint VAO = 0;
 	uint VBO = 0;
 	int vertexCount = 0;
+	bool shouldDraw = false;
 };
 

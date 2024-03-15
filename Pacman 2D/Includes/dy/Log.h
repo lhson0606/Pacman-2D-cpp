@@ -19,6 +19,7 @@ public:
 	static void Log(const std::string& message);
 	static void Log(LogType type, const char* message);
 	static void LogArg(LogType type, const char* format, ...);
+	static void LogArg(const char* format, ...);
 	static void ResetConsoleColor();
 	static void SetConsoleColor(int color);
 };

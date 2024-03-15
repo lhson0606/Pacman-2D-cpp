@@ -16,6 +16,7 @@ void PhysicSystem::Update(float dt)
 	{
 		auto& motion = coordinator->GetComponent<MotionComponent>(e);
 		auto& transform = coordinator->GetComponent<TransformComponent>(e);
-		transform.Translate(motion.velocity * dt);
+
+		transform.Translate(motion.GetVelocity() * dt);
 	}
 }

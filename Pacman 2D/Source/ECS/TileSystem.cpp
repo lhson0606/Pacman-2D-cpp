@@ -50,26 +50,26 @@ void TileSystem::InitMap(std::shared_ptr<Map> map, dy::Camera& cam)
 		int y = (tileId - 1) / tilesPerRow * 8;
 
 		TileVertex bottomLeft;
-		bottomLeft.x = transform.position.x;
-		bottomLeft.y = transform.position.y + 1;
+		bottomLeft.x = transform.GetPosition().x - 0.5f;
+		bottomLeft.y = transform.GetPosition().y + 0.5f;
 		bottomLeft.u = (float)x / textureWidth;
 		bottomLeft.v = 1 - (float)y / textureHeight;
 
 		TileVertex topLeft;
-		topLeft.x = transform.position.x;
-		topLeft.y = transform.position.y;
+		topLeft.x = transform.GetPosition().x - 0.5f;
+		topLeft.y = transform.GetPosition().y - 0.5f;
 		topLeft.u = (float)x / textureWidth;
 		topLeft.v = 1 - (float)(y + 8) / textureHeight;
 
 		TileVertex bottomRight;
-		bottomRight.x = transform.position.x + 1;
-		bottomRight.y = transform.position.y + 1;
+		bottomRight.x = transform.GetPosition().x + 0.5f;
+		bottomRight.y = transform.GetPosition().y + 0.5f;
 		bottomRight.u = (float)(x + 8) / textureWidth;
 		bottomRight.v = 1 - (float)y / textureHeight;
 
 		TileVertex topRight;
-		topRight.x = transform.position.x + 1;
-		topRight.y = transform.position.y;
+		topRight.x = transform.GetPosition().x + 0.5f;
+		topRight.y = transform.GetPosition().y - 0.5f;
 		topRight.u = (float)(x + 8) / textureWidth;
 		topRight.v = 1 - (float)(y + 8) / textureHeight;
 

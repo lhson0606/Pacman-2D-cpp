@@ -3,7 +3,7 @@
 #include "Polyline2D/Polyline2D.h"
 #include <vector>
 
-#define DEBUB_PATH_THICKNESS 0.07f
+#define DEBUB_PATH_THICKNESS 0.7f
 
 class DebugPathComponent
 {
@@ -17,6 +17,11 @@ public:
 		this->id = id;
 	}
 
+	DebugPathComponent(float id)
+	{
+		this->id = id;
+	}
+
 	void SetPath(std::vector<Vec2> points)
 	{
 		this->vertices = crushedpixel::Polyline2D::create(points, DEBUB_PATH_THICKNESS,
@@ -27,6 +32,6 @@ public:
 	~DebugPathComponent() = default;
 
 	std::vector<Vec2> vertices;
-	float id;
+	float id = 0;
 };
 

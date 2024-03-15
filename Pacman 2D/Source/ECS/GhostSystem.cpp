@@ -3,6 +3,7 @@
 #include "ECS/TransformComponent.h"
 #include "ECS/TilePositionComponent.h"
 #include "ECS/MotionComponent.h"
+#include "ECS/DebugPathComponent.h"
 #include "dy/dyutils.h"
 #include "dy/Log.h"
 #include "dy/glutils.h"
@@ -103,6 +104,11 @@ void GhostSystem::LoadExtra(std::shared_ptr<Shader> shader)
 	shader->Stop();
 }
 
+bool isEqual(float x, float y)
+{
+		return abs(x - y) < 0.001f;
+}
+
 void GhostSystem::Update(float dt)
 {
 	static double accumulativeTime = 0;
@@ -113,9 +119,52 @@ void GhostSystem::Update(float dt)
 	{
 		auto& ghostComponent = coordinator->GetComponent<GhostComponent>(e);
 		ghostComponent.part[0] = temp;
+
+		auto& transform = coordinator->GetComponent<TransformComponent>(e);
+
+		if (ghostComponent.path.size() == 0)
+		{
+			continue;
+		}
+
+		glm::ivec2 targetTile = ghostComponent.path[0];
+
+		//if the ghost is at the target tile, remove it from the path
+		while (isEqual(targetTile.x, transform.GetPosition().x) && isEqual(targetTile.y, transform.GetPosition().y))
+		{
+			ghostComponent.path.erase(ghostComponent.path.begin());
+			coordinator->GetComponent<MotionComponent>(e).SetVelocity(glm::vec3(0));
+			transform.SetPosition(glm::vec3(targetTile.x, targetTile.y, 0));
+			if (ghostComponent.path.size() == 0)
+			{
+				break;
+			}
+			targetTile = ghostComponent.path[0];
+		}
+
+		if (ghostComponent.path.size() == 0)
+		{
+			continue;
+		}
+
+		//set the direction to the next tile
+		glm::vec3 dir = glm::normalize(glm::vec3(targetTile.x, targetTile.y, 0) - transform.GetPosition());
+		//our normalizer can return nan!?
+
+		if (isnan(dir.x))
+		{
+			assert(false && "nan dir");
+		}
+
+		auto& motion = coordinator->GetComponent<MotionComponent>(e);
+		motion.SetVelocity(dir * ghostSpeed);
+		UpdateGhostEyeDir(e, dir);
 	}
 
 	accumulativeTime += dt;
+
+	//recalculate path
+	UpdateDebugGhostPath();
 }
 
 void GhostSystem::Draw(std::shared_ptr<Shader> shader, std::shared_ptr<Texture> tex)
@@ -176,12 +225,13 @@ void GhostSystem::CreateGhost(GhostType type, glm::vec3 startPos)
 		break;
 	}
 
-	ghostComponent.startPos = startPos;
+	ghostComponent.startPos = {startPos.x - TILE_OFFSET, startPos.y - TILE_OFFSET, 0};
 
 	coordinator->AddComponent<GhostComponent>(newGhost, ghostComponent);
-	coordinator->AddComponent<TransformComponent>(newGhost, TransformComponent{ startPos });
+	coordinator->AddComponent<TransformComponent>(newGhost, TransformComponent{ ghostComponent.startPos });
 	coordinator->AddComponent<TilePositionComponent>(newGhost, TilePositionComponent{(int)startPos.x/8, (int)startPos.y/8});
 	coordinator->AddComponent<MotionComponent>(newGhost, MotionComponent{});
+	coordinator->AddComponent<DebugPathComponent>(newGhost, DebugPathComponent{ (float)type });
 
 	ghosts[type] = newGhost;
 }
@@ -196,7 +246,7 @@ void GhostSystem::Move(GhostType type, glm::vec3 dir)
 	auto ghost = coordinator->GetComponent<TransformComponent>(ghosts[type]);
 	auto& motion = coordinator->GetComponent<MotionComponent>(ghosts[type]);
 	auto& ghostData = coordinator->GetComponent<GhostComponent>(ghosts[type]);
-	motion.velocity = dir*ghostSpeed;
+	motion.SetVelocity(dir * ghostSpeed);
 
 	//change eye direction
 	if (dir == glm::vec3(1, 0, 0))
@@ -240,5 +290,60 @@ void GhostSystem::UpdateGhostUniforms(std::shared_ptr<Shader> shader)
 
 		count++;
 		assert(count <= GHOST_COUNT);
+	}
+}
+
+void GhostSystem::UpdateDebugGhostPath()
+{
+	for (Entity e : entities)
+	{
+		auto& transformComponent = coordinator->GetComponent<TransformComponent>(e);
+		auto& debugPathComponent = coordinator->GetComponent<DebugPathComponent>(e);
+		auto& ghostComponent = coordinator->GetComponent<GhostComponent>(e);
+
+		std::vector<crushedpixel::Vec2> points;
+		points.push_back(crushedpixel::Vec2(transformComponent.GetPosition().x, transformComponent.GetPosition().y));
+
+		for (const auto& v : ghostComponent.path)
+		{
+			points.push_back(crushedpixel::Vec2(v.x, v.y));
+		}
+
+		debugPathComponent.SetPath(points);
+	}
+}
+
+void GhostSystem::UpdateGhostEyeDir(Entity ghost, const glm::vec3 dir)
+{
+	auto& ghostComponent = coordinator->GetComponent<GhostComponent>(ghost);
+
+	if (ghostComponent.mode == GhostComponent::Mode::FRIGHTENED)
+	{
+		ghostComponent.part[1] = 4;
+	}else 
+	{
+		float dpUp = glm::dot(dir, UP);
+		float dpDown = glm::dot(dir, DOWN);
+		float dpLeft = glm::dot(dir, LEFT);
+		float dpRight = glm::dot(dir, RIGHT);
+
+		float max = std::max({ dpUp, dpDown, dpLeft, dpRight });
+
+		if (max == dpUp)
+		{
+			ghostComponent.part[1] = 0;
+		}
+		else if (max == dpDown)
+		{
+			ghostComponent.part[1] = 2;
+		}
+		else if (max == dpLeft)
+		{
+			ghostComponent.part[1] = 3;
+		}
+		else if (max == dpRight)
+		{
+			ghostComponent.part[1] = 1;
+		}
 	}
 }
