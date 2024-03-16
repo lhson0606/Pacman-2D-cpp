@@ -1,6 +1,7 @@
 #include "DebugSystem.h"
 #include <glad/glad.h>
 #include "DebugPathComponent.h"
+#include "dy/Log.h"
 
 void DebugSystem::Init()
 {
@@ -45,6 +46,7 @@ void DebugSystem::Draw(std::shared_ptr<Shader> shader)
 	glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 	glBindVertexArray(0);
+	shader->Stop();
 }
 
 void DebugSystem::SetCoordinator(std::shared_ptr<Coordinator> coordinator)
@@ -80,7 +82,12 @@ void DebugSystem::Prepare()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	//load new data into the buffer
 	glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), vertices.data());
-	assert(glGetError() == GL_NO_ERROR);
+	
+	if (glGetError() != GL_NO_ERROR)
+	{
+		DyLogger::LogArg(DyLogger::LOG_ERROR, "OpenGL error: %d", glGetError());
+		//assert(false && "Error!");
+	}
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);

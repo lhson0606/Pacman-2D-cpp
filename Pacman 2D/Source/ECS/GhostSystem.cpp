@@ -151,15 +151,16 @@ void GhostSystem::Update(float dt)
 		glm::vec3 dir = glm::normalize(glm::vec3(targetTile.x, targetTile.y, 0) - transform.GetPosition());
 		//our normalizer can return nan!?
 
-		if (isnan(dir.x))
+		if (isnan(dir.x) || isnan(dir.y) || isnan(dir.z))
 		{
-			assert(false && "nan dir");
+			DyLogger::LogArg(DyLogger::LOG_ERROR, "Ghost direction is nan!");
 		}
 
 		auto& motion = coordinator->GetComponent<MotionComponent>(e);
 		motion.SetVelocity(dir * ghostSpeed);
 		UpdateGhostEyeDir(e, dir);
-	}
+
+	}	
 
 	accumulativeTime += dt;
 
@@ -293,6 +294,15 @@ void GhostSystem::UpdateGhostUniforms(std::shared_ptr<Shader> shader)
 	}
 }
 
+template<typename T>
+std::vector<T> removeConsecutiveDuplicates(const std::vector<T>& v)
+{
+	std::vector<T> result;
+	result.reserve(v.size());
+	std::unique_copy(v.begin(), v.end(), std::back_inserter(result), [](const crushedpixel::Vec2& a, const crushedpixel::Vec2& b) {return isEqual(a.x, b.x) && isEqual(a.y, b.y); });
+	return result;
+}
+
 void GhostSystem::UpdateDebugGhostPath()
 {
 	for (Entity e : entities)
@@ -301,13 +311,23 @@ void GhostSystem::UpdateDebugGhostPath()
 		auto& debugPathComponent = coordinator->GetComponent<DebugPathComponent>(e);
 		auto& ghostComponent = coordinator->GetComponent<GhostComponent>(e);
 
+		debugPathComponent.ClearPath();
+
+		if (ghostComponent.path.size() == 0)
+		{
+			continue;
+		}
+
 		std::vector<crushedpixel::Vec2> points;
+
 		points.push_back(crushedpixel::Vec2(transformComponent.GetPosition().x, transformComponent.GetPosition().y));
 
 		for (const auto& v : ghostComponent.path)
 		{
 			points.push_back(crushedpixel::Vec2(v.x, v.y));
 		}
+
+		points = removeConsecutiveDuplicates(points);
 
 		debugPathComponent.SetPath(points);
 	}

@@ -405,8 +405,8 @@ private:
 		auto jointAngle = angle2 - angle1;
 
 		// calculate the amount of triangles to use for the joint
-		auto temp = (int)std::floor(std::abs(jointAngle) / roundMinAngle);
-		auto numTriangles = (1 > temp)? 1: temp;
+		//NOTE: modified numTriangles to 1
+		auto numTriangles = 1;
 
 		// calculate the angle of each triangle
 		auto triAngle = jointAngle / numTriangles;

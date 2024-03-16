@@ -24,9 +24,15 @@ public:
 
 	void SetPath(std::vector<Vec2> points)
 	{
+		//I change numTriagles in Polyline2D.h to 1, so the JointStyle will always use only 1 triangle
 		this->vertices = crushedpixel::Polyline2D::create(points, DEBUB_PATH_THICKNESS,
-			crushedpixel::Polyline2D::JointStyle::ROUND,
+			crushedpixel::Polyline2D::JointStyle::BEVEL,
 			crushedpixel::Polyline2D::EndCapStyle::SQUARE);
+	}
+
+	void ClearPath()
+	{
+		vertices.clear();
 	}
 
 	~DebugPathComponent() = default;

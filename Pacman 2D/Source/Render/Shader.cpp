@@ -5,6 +5,7 @@
 #include <sstream>
 #include <glm/gtc/type_ptr.hpp>
 #include <assert.h>
+#include "dy/Log.h"
 
 using uint = unsigned int;
 
@@ -161,7 +162,9 @@ int Shader::GetUniLocation(const std::string& name)
 
 		if (res == -1)
 		{
-			std::cout << "Error: uniform \"" << name << "\" not found\n";
+			//pretty funny, but it can cause lots of trouble :))
+			//see: https://www.youtube.com/live/znJZsnTDXEk?si=Er5Wv8aVaa3f1Y7q&t=8114
+			DyLogger::LogArg(DyLogger::LOG_ERROR, "Error: uniform \"%s\" not found or it's never used!", name.c_str());
 			throw std::exception("uniform not found");
 		}
 

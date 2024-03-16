@@ -137,7 +137,7 @@ private:
 	std::array<T, MAX_ENTITIES> componentArray;
 	std::unordered_map<Entity, std::uint32_t> entityToIndexMap;
 	std::unordered_map<std::uint32_t, Entity> indexToEntityMap;
-	std::uint32_t size;
+	std::uint32_t size = 0;
 };
 
 class ComponentManager

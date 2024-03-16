@@ -18,7 +18,7 @@ namespace dy
 			DESCEND
 		};
 
-		inline const static glm::vec3 POS = glm::vec3(0, 0, -50);
+		inline const static glm::vec3 POS = glm::vec3(0, 0, -10);
 		inline const static glm::vec3 DIR = POS - glm::vec3(0, 0, 0);
 		inline const static glm::vec3 UP = glm::vec3(0, 1, 0);
 		inline const static float MOVE_SPEED = 0.0005f;

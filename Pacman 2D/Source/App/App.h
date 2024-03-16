@@ -22,10 +22,9 @@ public:
 	void Stop();
 	~App();
 
-	float w = 800;
-	float h = 600;
+	float w = 1024;
+	float h = 960;
 	float aspect = (float)w / h;
-	float fov = 690;
 
 	dy::Camera cam;
 	//glm::mat4 projection = glm::ortho(-w / h * glm::radians(fov), w / h * glm::radians(fov), -1.0f * glm::radians(fov), 1.0f * glm::radians(fov));
