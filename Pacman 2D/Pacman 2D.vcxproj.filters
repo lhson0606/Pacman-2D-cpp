@@ -90,6 +90,21 @@
     <ClCompile Include="Source\ECS\PhysicSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\ECS\PlayerSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\SharedData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\KeyboardComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\KeyboardSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\PlayerComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vendors\Includes\assimp\Compiler\poppack1.h">
@@ -1289,6 +1304,21 @@
     <ClInclude Include="Source\ECS\PhysicSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\ECS\PlayerSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\SharedData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\KeyboardComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\KeyboardSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\PlayerComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Vendors\Includes\assimp\color4.inl">
@@ -1742,6 +1772,9 @@
     <None Include="Resources\Textures\target_tile.aseprite" />
     <None Include="Resources\GLSL\target_tile.vert" />
     <None Include="Resources\GLSL\target_tile.frag" />
+    <None Include="Resources\Textures\pacman.aseprite" />
+    <None Include="Resources\GLSL\pacman.vert" />
+    <None Include="Resources\GLSL\pacman.frag" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Vendors\Libs\assimp-vc143-mtd.lib" />
@@ -1767,6 +1800,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="Resources\Textures\target_tile.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\Textures\pacman.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

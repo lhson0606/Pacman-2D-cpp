@@ -12,6 +12,8 @@
 #include <ECS/DebugPathComponent.h>
 #include <ECS/TilePositionComponent.h>
 #include <ECS/MotionComponent.h>
+#include <ECS/KeyboardComponent.h>
+#include <ECS/PlayerComponent.h>
 #include <chrono>
 
 #include "dy/Log.h"
@@ -54,7 +56,7 @@ int App::Run()
 		glClear(GL_DEPTH_BUFFER_BIT);
 
 		Draw();
-		Update(dt);
+		Update(0.0003f);
 
 		//swap buffer for the next frame to be drawn
 		glfwSwapBuffers(window);
@@ -75,6 +77,7 @@ void App::UpdateWindowView()
 	tileSystem->LoadViewMat(shaderManager->GetShader(ShaderManager::ShaderType::MAP), cam.view);
 	ghostSystem->LoadViewMat(shaderManager->GetShader(ShaderManager::ShaderType::GHOST), cam.view);
 	debugSystem->LoadViewMat(shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH), cam.view);
+	playerSystem->LoadViewMat(shaderManager->GetShader(ShaderManager::ShaderType::PACMAN), cam.view);
 }
 
 void App::UpdateWindowProjection()
@@ -82,6 +85,7 @@ void App::UpdateWindowProjection()
 	tileSystem->LoadProjectMat(shaderManager->GetShader(ShaderManager::ShaderType::MAP), projection);
 	ghostSystem->LoadProjectMat(shaderManager->GetShader(ShaderManager::ShaderType::GHOST), projection);
 	debugSystem->LoadProjectMat(shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH), projection);
+	playerSystem->LoadProjectMat(shaderManager->GetShader(ShaderManager::ShaderType::PACMAN), projection);
 }
 
 int App::Init()
@@ -140,6 +144,8 @@ void App::InitSystems()
 	coordinator->RegisterComponent<DebugPathComponent>();
 	coordinator->RegisterComponent<TilePositionComponent>();
 	coordinator->RegisterComponent<MotionComponent>();
+	coordinator->RegisterComponent<KeyboardComponent>();
+	coordinator->RegisterComponent<PlayerComponent>();
 
 	tileSystem = coordinator->RegisterSystem<TileSystem>();
 	tileSystem->SetCoordinator(coordinator);
@@ -170,6 +176,19 @@ void App::InitSystems()
 	physicSystemSignature.set(coordinator->GetComponentType<TransformComponent>());
 	physicSystemSignature.set(coordinator->GetComponentType<MotionComponent>());
 	coordinator->SetSystemSignature<PhysicSystem>(physicSystemSignature);
+
+	keyboardSystem = coordinator->RegisterSystem<KeyboardSystem>();
+	keyboardSystem->SetCoordinator(coordinator);
+	Signature keyboardSystemSignature;
+	keyboardSystemSignature.set(coordinator->GetComponentType<KeyboardComponent>());
+	coordinator->SetSystemSignature<KeyboardSystem>(keyboardSystemSignature);
+
+	playerSystem = coordinator->RegisterSystem<PlayerSystem>();
+	playerSystem->SetCoordinator(coordinator);
+	playerSystem->SetSharedData(sharedData);
+	Signature playerSystemSignature;
+	playerSystemSignature.set(coordinator->GetComponentType<PlayerComponent>());
+	coordinator->SetSystemSignature<PlayerSystem>(playerSystemSignature);
 
 	//load the shaders
 	shaderManager->HardLoadShaders();
@@ -205,6 +224,11 @@ void App::OnCreate()
 		GhostComponent::CLYDE_COLOR		
 		);
 
+	playerSystem->Init(map);
+	playerSystem->LoadProjectMat(shaderManager->GetShader(ShaderManager::ShaderType::PACMAN), projection);
+	playerSystem->LoadViewMat(shaderManager->GetShader(ShaderManager::ShaderType::PACMAN), cam.view);
+	playerSystem->LoadTexture(shaderManager->GetShader(ShaderManager::ShaderType::PACMAN), textureManager->GetTexture(TextureManager::TextureType::PACMAN));
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_DEPTH_TEST);
@@ -228,12 +252,18 @@ void App::Draw()
 		shaderManager->GetShader(ShaderManager::ShaderType::GHOST),
 		textureManager->GetTexture(TextureManager::TextureType::GHOST)
 	);
+
+	playerSystem->Draw(
+		shaderManager->GetShader(ShaderManager::ShaderType::PACMAN),
+		textureManager->GetTexture(TextureManager::TextureType::PACMAN)
+	);
 }
 
 void App::Update(float dt)
 {
 	ghostSystem->Update(dt);
 	physicSystem->Update(dt);
+	playerSystem->Update(dt);
 }
 
 void App::OnClose()
@@ -331,27 +361,26 @@ void processInput(GLFWwindow* window)
 
 	app->UpdateWindowView();*/
 
-	//testing
-	auto curGhost = GhostSystem::BLINKY;
+	//app->keyboardSystem->PrepareAll();
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		app->ghostSystem->Move(curGhost, GhostSystem::UP);
+		app->keyboardSystem->SetKeyPressed(GLFW_KEY_W);
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
-		app->ghostSystem->Move(curGhost, GhostSystem::DOWN);
+		app->keyboardSystem->SetKeyPressed(GLFW_KEY_S);
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-		app->ghostSystem->Move(curGhost, GhostSystem::LEFT);
+		app->keyboardSystem->SetKeyPressed(GLFW_KEY_A);
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-		app->ghostSystem->Move(curGhost, GhostSystem::RIGHT);
+		app->keyboardSystem->SetKeyPressed(GLFW_KEY_D);
 	}
 }
 

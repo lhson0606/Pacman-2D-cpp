@@ -11,6 +11,7 @@ public:
 	{
 		MAP,
 		GHOST,
+		PACMAN,
 		DEBUG_PATH,
 		TARGET_TILE,
 	};
@@ -23,6 +24,8 @@ public:
 	inline const static std::string DEBUG_PATH_FRAGMENT_SHADER_PATH = "Resources/GLSL/path.frag";
 	inline const static std::string TARGET_TILE_FRAGMENT_SHADER_PATH = "Resources/GLSL/target_tile.frag";
 	inline const static std::string TARGET_TILE_VERTEX_SHADER_PATH = "Resources/GLSL/target_tile.vert";
+	inline const static std::string PACMAN_VERTEX_SHADER_PATH = "Resources/GLSL/pacman.vert";
+	inline const static std::string PACMAN_FRAGMENT_SHADER_PATH = "Resources/GLSL/pacman.frag";
 
 	void HardLoadShaders();
 

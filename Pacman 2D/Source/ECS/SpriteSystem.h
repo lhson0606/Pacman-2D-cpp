@@ -1,5 +1,8 @@
 #pragma once
 
-class SpriteSystem
+#include "ECS/ECS.h"
+
+class SpriteSystem : public System
 {
+
 };

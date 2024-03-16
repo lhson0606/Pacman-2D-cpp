@@ -9,6 +9,8 @@ public:
 
 	TilePositionComponent() :x(0), y(0) {}
 
+	void SetTilePosition(int x, int y);
+
 	~TilePositionComponent() = default;
 };
 

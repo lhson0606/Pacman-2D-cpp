@@ -18,6 +18,6 @@ public:
 		this->velocity = velocity; 
 	}
 private:
-	glm::vec3 velocity = glm::vec3(0.1643898f, 0.9863939238f, 0.f)*glm::vec3(5.0f);
+	glm::vec3 velocity = glm::vec3(0);
 };
 

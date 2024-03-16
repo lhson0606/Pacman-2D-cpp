@@ -10,6 +10,9 @@
 #include <ECS/GhostSystem.h>
 #include <ECS/DebugSystem.h>
 #include <ECS/PhysicSystem.h>
+#include <ECS/PlayerSystem.h>
+#include <ECS/SharedData.h>
+#include <ECS/KeyboardSystem.h>
 #include "Render/Camera.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -35,6 +38,10 @@ public:
 	std::shared_ptr<GhostSystem> ghostSystem;
 	std::shared_ptr<DebugSystem> debugSystem;
 	std::shared_ptr<PhysicSystem> physicSystem;
+	std::shared_ptr<PlayerSystem> playerSystem;
+	std::shared_ptr<KeyboardSystem> keyboardSystem;
+
+	std::shared_ptr<SharedData> sharedData = std::make_shared<SharedData>();
 
 	std::unique_ptr<ShaderManager> shaderManager = std::make_unique<ShaderManager>();
 	std::unique_ptr<TextureManager> textureManager = std::make_unique<TextureManager>();

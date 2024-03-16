@@ -71,7 +71,7 @@ private:
 
 	std::shared_ptr<Map> map;
 
-	const glm::vec3 ghostSpeed = glm::vec3(5,5,5);
+	const glm::vec3 ghostSpeed = glm::vec3(7.2f,7.2f,7.2f);
 
 	inline static const float VERTICE[] =
 	{

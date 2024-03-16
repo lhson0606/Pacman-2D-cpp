@@ -151,6 +151,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\ECS\PlayerComponent.cpp" />
+    <ClCompile Include="Source\ECS\KeyboardComponent.cpp" />
+    <ClCompile Include="Source\ECS\KeyboardSystem.cpp" />
+    <ClCompile Include="Source\ECS\SharedData.cpp" />
+    <ClCompile Include="Source\ECS\PlayerSystem.cpp" />
     <ClCompile Include="Source\ECS\PhysicSystem.cpp" />
     <ClCompile Include="Source\ECS\MotionComponent.cpp" />
     <ClCompile Include="Source\ECS\DebugPathComponent.cpp" />
@@ -178,6 +183,11 @@
     <ClCompile Include="Vendors\stb_define.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\ECS\PlayerComponent.h" />
+    <ClInclude Include="Source\ECS\KeyboardComponent.h" />
+    <ClInclude Include="Source\ECS\KeyboardSystem.h" />
+    <ClInclude Include="Source\ECS\SharedData.h" />
+    <ClInclude Include="Source\ECS\PlayerSystem.h" />
     <ClInclude Include="Source\ECS\PhysicSystem.h" />
     <ClInclude Include="Source\ECS\MotionComponent.h" />
     <ClInclude Include="Source\ECS\DebugPathComponent.h" />
@@ -584,6 +594,8 @@
     <None Include="Resources\GLSL\ghost.vert" />
     <None Include="Resources\GLSL\map.frag" />
     <None Include="Resources\GLSL\map.vert" />
+    <None Include="Resources\GLSL\pacman.frag" />
+    <None Include="Resources\GLSL\pacman.vert" />
     <None Include="Resources\GLSL\path.frag" />
     <None Include="Resources\GLSL\path.vert" />
     <None Include="Resources\GLSL\target_tile.frag" />
@@ -591,6 +603,7 @@
     <None Include="Resources\Maps\level1.json" />
     <None Include="Resources\Maps\pacman_map_1.tmx" />
     <None Include="Resources\Textures\ghost.aseprite" />
+    <None Include="Resources\Textures\pacman.aseprite" />
     <None Include="Resources\Textures\target_tile.aseprite" />
     <None Include="Vendors\Includes\assimp\color4.inl" />
     <None Include="Vendors\Includes\assimp\material.inl" />
@@ -746,6 +759,7 @@
   <ItemGroup>
     <Image Include="Resources\Textures\energized_pellet.png" />
     <Image Include="Resources\Textures\ghost.png" />
+    <Image Include="Resources\Textures\pacman.png" />
     <Image Include="Resources\Textures\pacman_map.png" />
     <Image Include="Resources\Textures\pellet.png" />
     <Image Include="Resources\Textures\target_tile.png" />

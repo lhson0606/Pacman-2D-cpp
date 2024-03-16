@@ -9,6 +9,7 @@ void TextureManager::HardLoadTextures()
 	LoadTexture(MAP, MAP_TEXTURE_PATH);
 	LoadTexture(GHOST, GHOST_TEXTURE_PATH);
 	LoadTexture(TARGET_TILE, TARGET_TILE_PATH);
+	LoadTexture(PACMAN, PACMAN_TEXTURE_PATH);
 }
 
 void TextureManager::LoadTexture(TextureType type, const std::string& path)
@@ -26,5 +27,8 @@ void TextureManager::LoadTexture(TextureType type, const std::string& path)
 
 std::shared_ptr<Texture> TextureManager::GetTexture(TextureType type)
 {
+	if (textures.find(type) == textures.end())
+		throw std::runtime_error("Texture not found.");
+
 	return textures[type];
 }

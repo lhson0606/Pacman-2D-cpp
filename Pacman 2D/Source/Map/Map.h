@@ -66,6 +66,9 @@ public:
 		assert(map->data->getTileSize().x == map->data->getTileSize().y && "Tile size must be square");
 
 		map->tileSize = map->data->getTileSize().x;
+
+		assert(map->data->getTileSize().x == map->data->getTileSize().y && "Tile must be square");
+
 		map->width = map->data->getSize().x;
 		map->height = map->data->getSize().y;
 

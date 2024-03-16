@@ -104,15 +104,10 @@ void GhostSystem::LoadExtra(std::shared_ptr<Shader> shader)
 	shader->Stop();
 }
 
-bool isEqual(float x, float y)
-{
-		return abs(x - y) < 0.001f;
-}
-
 void GhostSystem::Update(float dt)
 {
-	static double accumulativeTime = 0;
-	float t = 0.5f * (1 + sin(accumulativeTime*10));
+	static double accumulatedTime = 0;
+	float t = 0.5f * (1 + sin(accumulatedTime *20));
 	int temp = (t>0.5f)? 1 : 0;
 
 	for (auto e : entities)
@@ -130,7 +125,7 @@ void GhostSystem::Update(float dt)
 		glm::ivec2 targetTile = ghostComponent.path[0];
 
 		//if the ghost is at the target tile, remove it from the path
-		while (isEqual(targetTile.x, transform.GetPosition().x) && isEqual(targetTile.y, transform.GetPosition().y))
+		while (dy::isEqual(targetTile.x, transform.GetPosition().x) && dy::isEqual(targetTile.y, transform.GetPosition().y))
 		{
 			ghostComponent.path.erase(ghostComponent.path.begin());
 			coordinator->GetComponent<MotionComponent>(e).SetVelocity(glm::vec3(0));
@@ -162,7 +157,7 @@ void GhostSystem::Update(float dt)
 
 	}	
 
-	accumulativeTime += dt;
+	accumulatedTime += dt;
 
 	//recalculate path
 	UpdateDebugGhostPath();
@@ -299,7 +294,7 @@ std::vector<T> removeConsecutiveDuplicates(const std::vector<T>& v)
 {
 	std::vector<T> result;
 	result.reserve(v.size());
-	std::unique_copy(v.begin(), v.end(), std::back_inserter(result), [](const crushedpixel::Vec2& a, const crushedpixel::Vec2& b) {return isEqual(a.x, b.x) && isEqual(a.y, b.y); });
+	std::unique_copy(v.begin(), v.end(), std::back_inserter(result), [](const crushedpixel::Vec2& a, const crushedpixel::Vec2& b) {return dy::isEqual(a.x, b.x) && dy::isEqual(a.y, b.y); });
 	return result;
 }
 
