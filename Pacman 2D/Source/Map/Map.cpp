@@ -35,7 +35,7 @@ void Map::InitWallLookUp()
 
 bool Map::IsWall(int x, int y) const
 {
-	if (x + y * width >= width * height)
+	if (x + y * width >= width * height || x<0 || y<0)
 	{
 		throw std::runtime_error("Index out of bounds");
 	}

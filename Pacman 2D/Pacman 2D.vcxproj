@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Algorithm\AStar.cpp" />
     <ClCompile Include="Source\ECS\PlayerComponent.cpp" />
     <ClCompile Include="Source\ECS\KeyboardComponent.cpp" />
     <ClCompile Include="Source\ECS\KeyboardSystem.cpp" />
@@ -183,6 +184,7 @@
     <ClCompile Include="Vendors\stb_define.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Algorithm\AStar.h" />
     <ClInclude Include="Source\ECS\PlayerComponent.h" />
     <ClInclude Include="Source\ECS\KeyboardComponent.h" />
     <ClInclude Include="Source\ECS\KeyboardSystem.h" />

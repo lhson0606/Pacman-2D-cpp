@@ -47,11 +47,15 @@ public:
 
 	void SetSharedData(std::shared_ptr<SharedData> sharedData);
 
-	void CreateGhost(GhostType type, glm::vec3 startPos, glm::ivec2 scatterTile);
+	void CreateGhost(GhostType type, glm::vec3 startPos, glm::vec2 scatterPos);
 
 	Entity GetGhost(GhostType type);
 
 	void Move(GhostType type, glm::vec3 dir);
+
+	void UpdateTargetPos(Entity ghost);
+
+	void UpdateDebugTargetPos();
 
 	~GhostSystem();
 

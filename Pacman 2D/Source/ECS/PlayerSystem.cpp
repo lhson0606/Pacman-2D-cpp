@@ -75,11 +75,12 @@ void PlayerSystem::Update(float dt)
 	//update game global state
 	auto pos = coordinator->GetComponent<TransformComponent>(curPlayer).GetPosition();
 
+	sharedData->SetPacmanPos({ pos.x, pos.y });
+
 	if (dy::isInteger(pos.x) && dy::isInteger(pos.y))
 	{
-		if (sharedData->GetPacmanTilePos().x != (int)pos.x || sharedData->GetPacmanTilePos().y != (int)pos.y)
+		if (sharedData->GetPacmanPos().x != (int)pos.x || sharedData->GetPacmanPos().y != (int)pos.y)
 		{
-			sharedData->SetPacmanTilePos({ (int)pos.x, (int)pos.y });
 			coordinator->GetComponent<TilePositionComponent>(curPlayer).SetTilePosition((int)pos.x, (int)pos.y);
 			coordinator->GetComponent<PlayerComponent>(curPlayer).SetEnteredNewTile(true);
 		}
@@ -182,18 +183,22 @@ void PlayerSystem::UpdatePacmanDirection()
 	if (max == dpUp)
 	{
 		transform.SetRotation({ 0.0f, 0.0f, -90.f });
+		sharedData->SetPacmanDir(PlayerComponent::UP);
 	}
 	else if (max == dpDown)
 	{
 		transform.SetRotation({ 0.0f, 0.0f, 90.f });
+		sharedData->SetPacmanDir(PlayerComponent::DOWN);
 	}
 	else if (max == dpLeft)
 	{
 		transform.SetRotation({ 0.0f, 0.0f, -180.f });
+		sharedData->SetPacmanDir(PlayerComponent::LEFT);
 	}
 	else if (max == dpRight)
 	{
 		transform.SetRotation({ 0.0f, 0.0f, 0.0f });
+		sharedData->SetPacmanDir(PlayerComponent::RIGHT);
 	}
 }
 

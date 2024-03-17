@@ -76,7 +76,10 @@ void App::UpdateWindowView()
 {
 	tileSystem->LoadViewMat(shaderManager->GetShader(ShaderManager::ShaderType::MAP), cam.view);
 	ghostSystem->LoadViewMat(shaderManager->GetShader(ShaderManager::ShaderType::GHOST), cam.view);
-	debugSystem->LoadViewMat(shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH), cam.view);
+	debugSystem->LoadViewMat(
+		shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH), 
+		shaderManager->GetShader(ShaderManager::ShaderType::TARGET_TILE), 
+		cam.view);
 	playerSystem->LoadViewMat(shaderManager->GetShader(ShaderManager::ShaderType::PACMAN), cam.view);
 }
 
@@ -84,7 +87,10 @@ void App::UpdateWindowProjection()
 {
 	tileSystem->LoadProjectMat(shaderManager->GetShader(ShaderManager::ShaderType::MAP), projection);
 	ghostSystem->LoadProjectMat(shaderManager->GetShader(ShaderManager::ShaderType::GHOST), projection);
-	debugSystem->LoadProjectMat(shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH), projection);
+	debugSystem->LoadProjectMat(
+		shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH),
+		shaderManager->GetShader(ShaderManager::ShaderType::TARGET_TILE),
+		projection);
 	playerSystem->LoadProjectMat(shaderManager->GetShader(ShaderManager::ShaderType::PACMAN), projection);
 }
 
@@ -216,13 +222,25 @@ void App::OnCreate()
 
 	//init debug system
 	debugSystem->Init();
-	debugSystem->LoadProjectMat(shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH), projection);
-	debugSystem->LoadViewMat(shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH), cam.view);
-	debugSystem->LoadColors(shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH),
+	debugSystem->LoadProjectMat(
+		shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH), 
+		shaderManager->GetShader(ShaderManager::ShaderType::TARGET_TILE),
+		projection);
+	debugSystem->LoadViewMat(
+		shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH), 
+		shaderManager->GetShader(ShaderManager::ShaderType::TARGET_TILE),
+		cam.view);
+	debugSystem->LoadColors(
+		shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH),
+		shaderManager->GetShader(ShaderManager::ShaderType::TARGET_TILE),
 		GhostComponent::BLINKY_COLOR,
 		GhostComponent::PINKY_COLOR,
 		GhostComponent::INKY_COLOR,
 		GhostComponent::CLYDE_COLOR
+	);
+	debugSystem->LoadTexture(
+		shaderManager->GetShader(ShaderManager::ShaderType::TARGET_TILE),
+		textureManager->GetTexture(TextureManager::TextureType::TARGET_TILE)
 	);
 
 	playerSystem->Init(map);
@@ -240,23 +258,25 @@ void App::OnCreate()
 
 void App::Draw()
 {
+	playerSystem->Draw(
+		shaderManager->GetShader(ShaderManager::ShaderType::PACMAN),
+		textureManager->GetTexture(TextureManager::TextureType::PACMAN)
+	);
+
 	tileSystem->Draw(
 		shaderManager->GetShader(ShaderManager::ShaderType::MAP),
 		textureManager->GetTexture(TextureManager::TextureType::MAP)
 	);
 
 	debugSystem->Draw(
-		shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH)
+		shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH),
+		shaderManager->GetShader(ShaderManager::ShaderType::TARGET_TILE),
+		textureManager->GetTexture(TextureManager::TextureType::TARGET_TILE)
 	);
 
 	ghostSystem->Draw(
 		shaderManager->GetShader(ShaderManager::ShaderType::GHOST),
 		textureManager->GetTexture(TextureManager::TextureType::GHOST)
-	);
-
-	playerSystem->Draw(
-		shaderManager->GetShader(ShaderManager::ShaderType::PACMAN),
-		textureManager->GetTexture(TextureManager::TextureType::PACMAN)
 	);
 }
 

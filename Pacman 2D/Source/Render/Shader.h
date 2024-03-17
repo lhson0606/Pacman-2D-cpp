@@ -34,5 +34,7 @@ private:
 	uint id = 0;
 	std::string vertCode;
 	std::string fragPath;
+	std::string vertPath;
+	std::string fragCode;
 	std::map<std::string, int> uniformLocationCache;
 };

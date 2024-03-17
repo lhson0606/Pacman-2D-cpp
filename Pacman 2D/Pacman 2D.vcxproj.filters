@@ -105,6 +105,9 @@
     <ClCompile Include="Source\ECS\PlayerComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Algorithm\AStar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vendors\Includes\assimp\Compiler\poppack1.h">
@@ -1317,6 +1320,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\ECS\PlayerComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Algorithm\AStar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

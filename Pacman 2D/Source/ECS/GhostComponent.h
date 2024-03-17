@@ -35,9 +35,9 @@ public:
 	glm::vec3 color = { 1,1,1 };
 	glm::vec3 startPos = { 0,0,0 };
 	std::vector<glm::ivec2> path;
-	int type;
-	glm::ivec2 targetTile = { 0,0 };
-	glm::ivec2 scatterTile = { 0,0 };
+	int type = -1;
+	glm::vec2 targetPos = { 0,0 };
+	glm::vec2 scatterPos = { 0,0 };
 
 	GhostComponent();
 };

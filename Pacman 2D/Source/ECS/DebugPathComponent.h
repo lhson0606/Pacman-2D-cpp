@@ -2,8 +2,9 @@
 
 #include "Polyline2D/Polyline2D.h"
 #include <vector>
+#include <glm/glm.hpp>
 
-#define DEBUB_PATH_THICKNESS 0.7f
+#define DEBUB_PATH_THICKNESS 0.3f
 
 class DebugPathComponent
 {
@@ -38,5 +39,6 @@ public:
 	~DebugPathComponent() = default;
 
 	std::vector<Vec2> vertices;
+	glm::vec3 targetPositions = glm::vec3(0);
 	float id = 0;
 };

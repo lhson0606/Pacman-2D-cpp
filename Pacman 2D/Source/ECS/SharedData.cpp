@@ -4,14 +4,24 @@ SharedData::SharedData()
 {
 }
 
-glm::ivec2 SharedData::GetPacmanTilePos() const
+glm::vec2 SharedData::GetPacmanPos() const
 {
-	return pacmanTilePos;
+	return pacmanPos;
 }
 
-void SharedData::SetPacmanTilePos(const glm::ivec2& pos)
+void SharedData::SetPacmanPos(const glm::vec2& pos)
 {
-	pacmanTilePos = pos;
+	this->pacmanPos = pos;
+}
+
+int SharedData::GetPacmanDir() const
+{
+	return pacmanDir;
+}
+
+void SharedData::SetPacmanDir(int dir)
+{
+	this->pacmanDir = dir;
 }
 
 SharedData::~SharedData()

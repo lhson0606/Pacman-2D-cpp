@@ -6,9 +6,12 @@ class SharedData
 {
 public:
 	SharedData();
-	glm::ivec2 GetPacmanTilePos() const;
-	void SetPacmanTilePos(const glm::ivec2& pos);
+	glm::vec2 GetPacmanPos() const;
+	void SetPacmanPos(const glm::vec2& pos);
+	int GetPacmanDir() const;
+	void SetPacmanDir(int dir);
 	~SharedData();
 private:
-	glm::ivec2 pacmanTilePos = glm::ivec2(-1);
+	glm::vec2 pacmanPos = glm::vec2(-1);
+	int pacmanDir = 0;
 };

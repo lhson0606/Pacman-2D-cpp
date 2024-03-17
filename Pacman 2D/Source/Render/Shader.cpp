@@ -12,7 +12,9 @@ using uint = unsigned int;
 Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath)
 {
 	this->vertCode = readShader(vertexPath);
-	this->fragPath = readShader(fragmentPath);
+	this->fragCode = readShader(fragmentPath);
+	this->vertPath = vertexPath;
+	this->fragPath = fragmentPath;
 }
 
 Shader::~Shader()
@@ -54,7 +56,7 @@ void Shader::Init()
 
 	//create fragment shader
 	uint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	const char* fragmentShaderSourcePtr = fragPath.c_str();
+	const char* fragmentShaderSourcePtr = fragCode.c_str();
 	glShaderSource(fragmentShader, 1, &fragmentShaderSourcePtr, NULL);
 	glCompileShader(fragmentShader);
 
@@ -164,6 +166,7 @@ int Shader::GetUniLocation(const std::string& name)
 		{
 			//pretty funny, but it can cause lots of trouble :))
 			//see: https://www.youtube.com/live/znJZsnTDXEk?si=Er5Wv8aVaa3f1Y7q&t=8114
+			DyLogger::LogArg(DyLogger::LOG_ERROR, "Error in: %s & %s", vertPath.c_str(), fragPath.c_str());
 			DyLogger::LogArg(DyLogger::LOG_ERROR, "Error: uniform \"%s\" not found or it's never used!", name.c_str());
 			throw std::exception("uniform not found");
 		}

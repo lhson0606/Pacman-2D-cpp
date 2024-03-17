@@ -4,10 +4,13 @@
 #include "ECS/TilePositionComponent.h"
 #include "ECS/MotionComponent.h"
 #include "ECS/DebugPathComponent.h"
+#include "PlayerComponent.h"
+#include <glm/vec3.hpp>
 #include "dy/dyutils.h"
 #include "dy/Log.h"
 #include "dy/glutils.h"
 #include <math.h>
+#include "Algorithm/AStar.h"
 
 void GhostSystem::Init(std::shared_ptr<Map> map)
 {
@@ -96,6 +99,10 @@ void GhostSystem::Init(std::shared_ptr<Map> map)
 	glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(5 * sizeof(float)));
 
 	glBindVertexArray(0);
+
+	//testing
+	dy::AStar astar{ map };
+	auto path = astar.FindPath({ 1, 1 }, { 10, 10 }, dy::AStar::RIGHT);
 }
 
 void GhostSystem::LoadProjectMat(std::shared_ptr<Shader> shader, glm::mat4 proj)
@@ -140,6 +147,8 @@ void GhostSystem::Update(float dt)
 
 		auto& transform = coordinator->GetComponent<TransformComponent>(e);
 
+		UpdateTargetPos(e);
+
 		if (ghostComponent.path.size() == 0)
 		{
 			continue;
@@ -177,20 +186,13 @@ void GhostSystem::Update(float dt)
 		auto& motion = coordinator->GetComponent<MotionComponent>(e);
 		motion.SetVelocity(dir * ghostSpeed);
 		UpdateGhostEyeDir(e, dir);
-
-		//switch (ghostComponent.type)
-		//{
-		//case GhostSystem::BLINKY:
-		//	//Blinky always chase pacman
-		//	ghostComponent.targetTile = sharedData->GetPacmanTilePos();
-		//	break;
-		//}
 	}
 
 	accumulatedTime += dt;
 
 	//recalculate path
 	UpdateDebugGhostPath();
+	UpdateDebugTargetPos();
 }
 
 void GhostSystem::Draw(std::shared_ptr<Shader> shader, std::shared_ptr<Texture> tex)
@@ -229,7 +231,7 @@ void GhostSystem::SetSharedData(std::shared_ptr<SharedData> sharedData)
 	this->sharedData = sharedData;
 }
 
-void GhostSystem::CreateGhost(GhostType type, glm::vec3 startPos, glm::ivec2 scatterTile)
+void GhostSystem::CreateGhost(GhostType type, glm::vec3 startPos, glm::vec2 scatterPos)
 {
 	auto newGhost = coordinator->CreateEntity();
 
@@ -258,8 +260,8 @@ void GhostSystem::CreateGhost(GhostType type, glm::vec3 startPos, glm::ivec2 sca
 
 	ghostComponent.startPos = { startPos.x - TILE_OFFSET, startPos.y - TILE_OFFSET, 0 };
 	ghostComponent.type = type;
-	ghostComponent.scatterTile = scatterTile;
-	ghostComponent.targetTile = scatterTile;
+	ghostComponent.scatterPos = scatterPos;
+	ghostComponent.targetPos = scatterPos;
 	ghostComponent.mode = GhostComponent::Mode::SCATTER;
 
 	coordinator->AddComponent<GhostComponent>(newGhost, ghostComponent);
@@ -300,6 +302,95 @@ void GhostSystem::Move(GhostType type, glm::vec3 dir)
 	{
 		ghostData.part[1] = 0;
 	}
+}
+
+void GhostSystem::UpdateTargetPos(Entity e)
+{
+	auto& ghostComponent = coordinator->GetComponent<GhostComponent>(e);
+	auto& transform = coordinator->GetComponent<TransformComponent>(e);
+
+	/*if (ghostComponent.mode == GhostComponent::Mode::SCATTER)
+	{
+		ghostComponent.targetPos = ghostComponent.scatterPos;
+		return;
+	}*/
+
+	if (ghostComponent.mode == GhostComponent::Mode::FRIGHTENED)
+	{
+		assert(false && "Not implemented");
+		return;
+	}
+
+	switch (ghostComponent.type)
+	{
+	case GhostSystem::BLINKY:
+		//Blinky always chase pacman
+		ghostComponent.targetPos = sharedData->GetPacmanPos();
+		break;
+	case GhostSystem::PINKY:
+		switch (sharedData->GetPacmanDir())
+		{
+		case PlayerComponent::UP:
+			//minus both x and y to simulate overflow
+			ghostComponent.targetPos = sharedData->GetPacmanPos() + glm::vec2(-4, -4);
+			break;
+		case PlayerComponent::DOWN:
+			ghostComponent.targetPos = sharedData->GetPacmanPos() + glm::vec2(0, +4);
+			break;
+		case PlayerComponent::LEFT:
+			ghostComponent.targetPos = sharedData->GetPacmanPos() + glm::vec2(-4, 0);
+			break;
+		case::PlayerComponent::RIGHT:
+			ghostComponent.targetPos = sharedData->GetPacmanPos() + glm::vec2(+4, 0);
+			break;
+			break;
+		default:
+			break;
+		}
+		break;
+	case GhostSystem::INKY:
+		//oposite of pacman direction to blinky
+		auto pacmanPos = sharedData->GetPacmanPos();
+		auto blinkyPos = coordinator->GetComponent<TransformComponent>(ghosts[BLINKY]).GetPosition();
+		auto inkyTargetPos = pacmanPos + (pacmanPos - glm::vec2{ blinkyPos.x, blinkyPos.y });
+		ghostComponent.targetPos = inkyTargetPos;
+		break;
+	case GhostSystem::CLYDE:
+		//if the distance between clyde and pacman is less than 8 tiles, clyde will target scatter position,
+		//otherwise it will target pacman
+		ghostComponent.targetPos = glm::distance(
+			transform.GetPosition(),
+			glm::vec3{ sharedData->GetPacmanPos().x, sharedData->GetPacmanPos().y, 0 }
+		)
+			< 8 ? ghostComponent.scatterPos : sharedData->GetPacmanPos();
+
+		break;
+	default:
+		break;
+	}
+}
+
+void GhostSystem::UpdateDebugTargetPos()
+{
+	//Blinky
+	auto& blinkyDebug = coordinator->GetComponent<DebugPathComponent>(ghosts[BLINKY]);
+	auto& blinkyTargetPos = coordinator->GetComponent<GhostComponent>(ghosts[BLINKY]).targetPos;
+	blinkyDebug.targetPositions = { blinkyTargetPos.x, blinkyTargetPos.y, 0 };
+
+	//Pinky
+	auto& pinkyDebug = coordinator->GetComponent<DebugPathComponent>(ghosts[PINKY]);
+	auto& pinkyTargetPos = coordinator->GetComponent<GhostComponent>(ghosts[PINKY]).targetPos;
+	pinkyDebug.targetPositions = { pinkyTargetPos.x, pinkyTargetPos.y, 0 };
+
+	//Inky
+	auto& inkyDebug = coordinator->GetComponent<DebugPathComponent>(ghosts[INKY]);
+	auto& inkyTargetPos = coordinator->GetComponent<GhostComponent>(ghosts[INKY]).targetPos;
+	inkyDebug.targetPositions = { inkyTargetPos.x, inkyTargetPos.y, 0 };
+
+	//Clyde
+	auto& clydeDebug = coordinator->GetComponent<DebugPathComponent>(ghosts[CLYDE]);
+	auto& clydeTargetPos = coordinator->GetComponent<GhostComponent>(ghosts[CLYDE]).targetPos;
+	clydeDebug.targetPositions = { clydeTargetPos.x, clydeTargetPos.y, 0 };
 }
 
 GhostSystem::~GhostSystem()
@@ -362,8 +453,7 @@ void GhostSystem::UpdateDebugGhostPath()
 			points.push_back(crushedpixel::Vec2(v.x, v.y));
 		}
 
-		glm::vec2 targetTile = ghostComponent.targetTile;
-		points.push_back({ targetTile.x, targetTile.y });
+		points.push_back({ ghostComponent.targetPos.x, ghostComponent.targetPos.y });
 
 		points = removeConsecutiveDuplicates(points);
 
