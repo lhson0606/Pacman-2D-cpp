@@ -5,6 +5,7 @@
 #include "Map/Map.h"
 #include "Render/Shader.h"
 #include "Render/Texture.h"
+#include "ECS/SharedData.h"
 
 #define GHOST_COUNT 4
 
@@ -44,7 +45,9 @@ public:
 
 	void SetCoordinator(std::shared_ptr<Coordinator> coordinator);
 
-	void CreateGhost(GhostType type, glm::vec3 startPos);
+	void SetSharedData(std::shared_ptr<SharedData> sharedData);
+
+	void CreateGhost(GhostType type, glm::vec3 startPos, glm::ivec2 scatterTile);
 
 	Entity GetGhost(GhostType type);
 
@@ -71,7 +74,9 @@ private:
 
 	std::shared_ptr<Map> map;
 
-	const glm::vec3 ghostSpeed = glm::vec3(7.2f,7.2f,7.2f);
+	std::shared_ptr<SharedData> sharedData;
+
+	const glm::vec3 ghostSpeed = glm::vec3(7.2f, 7.2f, 7.2f);
 
 	inline static const float VERTICE[] =
 	{

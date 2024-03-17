@@ -55,6 +55,16 @@ void PlayerComponent::SetAnimIdx(int idx)
 	this->animIdx = idx;
 }
 
+bool PlayerComponent::HasEnteredNewTile()
+{
+	return hasEnteredNewTile;
+}
+
+void PlayerComponent::SetEnteredNewTile(bool val)
+{
+	this->hasEnteredNewTile = val;
+}
+
 PlayerComponent::MoveDirection PlayerComponent::GetInputDirection()
 {
 	return inpDir;

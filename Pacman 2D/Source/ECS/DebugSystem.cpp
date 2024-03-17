@@ -17,29 +17,28 @@ void DebugSystem::Init()
 
 void DebugSystem::AddTestingPath()
 {
-	for(int i = 0; i<4; i++)
+	for (int i = 0; i < 4; i++)
 	{
 		Entity pathEntity = coordinator->CreateEntity();
 
 		std::vector<crushedpixel::Vec2> points{
-			{ -0.25f + i*0.25f, -0.5f  },
+			{ -0.25f + i * 0.25f, -0.5f  },
 			{ -0.25f,  0.5f  },
 			{  0.25f,  0.25f },
 			{  0.0f,   0.0f  },
 			{  0.25f, -0.25f + i * 0.25f },
-			{ -0.4f- i * 0.25f,  -0.25f }
+			{ -0.4f - i * 0.25f,  -0.25f }
 		};
 
 		coordinator->AddComponent<DebugPathComponent>(pathEntity, { points, (float)i });
 	}
-	
 }
 
 void DebugSystem::Draw(std::shared_ptr<Shader> shader)
 {
 	Prepare();
 
-	if(!shouldDraw)
+	if (!shouldDraw)
 		return;
 
 	shader->Use();
@@ -58,8 +57,8 @@ void DebugSystem::Prepare()
 {
 	std::vector<float> vertices;
 
-	for(Entity e: entities)
-	{ 
+	for (Entity e : entities)
+	{
 		auto& path = coordinator->GetComponent<DebugPathComponent>(e);
 		for (auto& point : path.vertices)
 		{
@@ -67,7 +66,7 @@ void DebugSystem::Prepare()
 			vertices.push_back(point.y);
 			vertices.push_back(path.id);
 		}
-	}	
+	}
 
 	if (vertices.size() == 0)
 	{
@@ -82,7 +81,7 @@ void DebugSystem::Prepare()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	//load new data into the buffer
 	glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), vertices.data());
-	
+
 	if (glGetError() != GL_NO_ERROR)
 	{
 		DyLogger::LogArg(DyLogger::LOG_ERROR, "OpenGL error: %d", glGetError());

@@ -13,4 +13,3 @@ public:
 
 	~TilePositionComponent() = default;
 };
-

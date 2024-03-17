@@ -13,7 +13,7 @@ public:
 
 	void Translate(const glm::vec3& translation);
 
-	void Scale(const glm::vec3& scale);	
+	void Scale(const glm::vec3& scale);
 
 	glm::vec3 GetPosition();
 

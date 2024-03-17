@@ -22,14 +22,14 @@ Shader::~Shader()
 	{
 		glDeleteProgram(id);
 	}
-	
+
 	id = 0;
 }
 
 void Shader::Init()
 {
 	int compiledResult;
-	char* infoLog = new char[SHADER_ERROR_LOG_SIZE+1];
+	char* infoLog = new char[SHADER_ERROR_LOG_SIZE + 1];
 	std::stringstream errMsgBuilder;
 
 	//create vertex shader
@@ -69,7 +69,7 @@ void Shader::Init()
 		//delete vertex shader
 		glDeleteShader(vertexShader);
 		std::cout << "Error: fragment shader compilation failed\n";
-		std::cout<< errMsgBuilder.str() << std::endl;
+		std::cout << errMsgBuilder.str() << std::endl;
 		throw std::exception(errMsgBuilder.str().c_str());
 	}
 

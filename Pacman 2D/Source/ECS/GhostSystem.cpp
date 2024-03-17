@@ -16,16 +16,23 @@ void GhostSystem::Init(std::shared_ptr<Map> map)
 	this->map = map;
 
 	tson::Object* ghostStartPos[GHOST_COUNT];
+	tson::Object* ghostScatterPos[GHOST_COUNT];
 
 	auto posLayer = map->data->getLayer(Map::POSITION_LAYER);
 
 	assert(posLayer != nullptr);
 
 	//get ghost start position
+	//#todo: probably should move this to ghost component
 	ghostStartPos[PINKY] = posLayer->firstObj(Map::PINKY_START_POS_NAME);
 	ghostStartPos[BLINKY] = posLayer->firstObj(Map::BLINKY_START_POS_NAME);
 	ghostStartPos[INKY] = posLayer->firstObj(Map::INKY_START_POS_NAME);
 	ghostStartPos[CLYDE] = posLayer->firstObj(Map::CLYDE_START_POS_NAME);
+
+	ghostScatterPos[PINKY] = posLayer->firstObj(Map::PINKY_SCATTER_POS_NAME);
+	ghostScatterPos[BLINKY] = posLayer->firstObj(Map::BLINKY_SCATTER_POS_NAME);
+	ghostScatterPos[INKY] = posLayer->firstObj(Map::INKY_SCATTER_POS_NAME);
+	ghostScatterPos[CLYDE] = posLayer->firstObj(Map::CLYDE_SCATTER_POS_NAME);
 
 	assert(ghostStartPos[PINKY] != nullptr);
 	assert(ghostStartPos[BLINKY] != nullptr);
@@ -39,10 +46,26 @@ void GhostSystem::Init(std::shared_ptr<Map> map)
 	assert(ghostHouseInside != nullptr);
 	assert(ghostHouseOutside != nullptr);
 
-	CreateGhost(PINKY, glm::vec3(ghostStartPos[PINKY]->getPosition().x / 8.f, ghostStartPos[PINKY]->getPosition().y / 8.f, 0));
-	CreateGhost(BLINKY, glm::vec3(ghostStartPos[BLINKY]->getPosition().x / 8.f, ghostStartPos[BLINKY]->getPosition().y / 8.f, 0));
-	CreateGhost(INKY, glm::vec3(ghostStartPos[INKY]->getPosition().x / 8.f, ghostStartPos[INKY]->getPosition().y / 8.f, 0));
-	CreateGhost(CLYDE, glm::vec3(ghostStartPos[CLYDE]->getPosition().x / 8.f, ghostStartPos[CLYDE]->getPosition().y / 8.f, 0));
+	CreateGhost(
+		PINKY,
+		{ ghostStartPos[PINKY]->getPosition().x / 8.f, ghostStartPos[PINKY]->getPosition().y / 8.f, 0 },
+		{ ghostScatterPos[PINKY]->getPosition().x / 8.f, ghostScatterPos[PINKY]->getPosition().y / 8.f }
+	);
+	CreateGhost(
+		BLINKY,
+		{ ghostStartPos[BLINKY]->getPosition().x / 8.f, ghostStartPos[BLINKY]->getPosition().y / 8.f, 0 },
+		{ ghostScatterPos[BLINKY]->getPosition().x / 8.f, ghostScatterPos[BLINKY]->getPosition().y / 8.f }
+	);
+	CreateGhost(
+		INKY,
+		{ ghostStartPos[INKY]->getPosition().x / 8.f, ghostStartPos[INKY]->getPosition().y / 8.f, 0 },
+		{ ghostScatterPos[INKY]->getPosition().x / 8.f, ghostScatterPos[INKY]->getPosition().y / 8.f }
+	);
+	CreateGhost(
+		CLYDE,
+		{ ghostStartPos[CLYDE]->getPosition().x / 8.f, ghostStartPos[CLYDE]->getPosition().y / 8.f, 0 },
+		{ ghostScatterPos[CLYDE]->getPosition().x / 8.f, ghostScatterPos[CLYDE]->getPosition().y / 8.f }
+	);
 
 	//create VAO and VBO
 	glGenVertexArrays(1, &VAO);
@@ -107,8 +130,8 @@ void GhostSystem::LoadExtra(std::shared_ptr<Shader> shader)
 void GhostSystem::Update(float dt)
 {
 	static double accumulatedTime = 0;
-	float t = 0.5f * (1 + sin(accumulatedTime *20));
-	int temp = (t>0.5f)? 1 : 0;
+	float t = 0.5f * (1 + sin(accumulatedTime * 20));
+	int temp = (t > 0.5f) ? 1 : 0;
 
 	for (auto e : entities)
 	{
@@ -155,7 +178,14 @@ void GhostSystem::Update(float dt)
 		motion.SetVelocity(dir * ghostSpeed);
 		UpdateGhostEyeDir(e, dir);
 
-	}	
+		//switch (ghostComponent.type)
+		//{
+		//case GhostSystem::BLINKY:
+		//	//Blinky always chase pacman
+		//	ghostComponent.targetTile = sharedData->GetPacmanTilePos();
+		//	break;
+		//}
+	}
 
 	accumulatedTime += dt;
 
@@ -194,12 +224,17 @@ void GhostSystem::SetCoordinator(std::shared_ptr<Coordinator> coordinator)
 	this->coordinator = coordinator;
 }
 
+void GhostSystem::SetSharedData(std::shared_ptr<SharedData> sharedData)
+{
+	this->sharedData = sharedData;
+}
 
-void GhostSystem::CreateGhost(GhostType type, glm::vec3 startPos)
+void GhostSystem::CreateGhost(GhostType type, glm::vec3 startPos, glm::ivec2 scatterTile)
 {
 	auto newGhost = coordinator->CreateEntity();
 
 	GhostComponent ghostComponent;
+	ghostComponent.state = GhostComponent::State::IN_CAGE;
 
 	switch (type)
 	{
@@ -221,11 +256,15 @@ void GhostSystem::CreateGhost(GhostType type, glm::vec3 startPos)
 		break;
 	}
 
-	ghostComponent.startPos = {startPos.x - TILE_OFFSET, startPos.y - TILE_OFFSET, 0};
+	ghostComponent.startPos = { startPos.x - TILE_OFFSET, startPos.y - TILE_OFFSET, 0 };
+	ghostComponent.type = type;
+	ghostComponent.scatterTile = scatterTile;
+	ghostComponent.targetTile = scatterTile;
+	ghostComponent.mode = GhostComponent::Mode::SCATTER;
 
 	coordinator->AddComponent<GhostComponent>(newGhost, ghostComponent);
 	coordinator->AddComponent<TransformComponent>(newGhost, TransformComponent{ ghostComponent.startPos });
-	coordinator->AddComponent<TilePositionComponent>(newGhost, TilePositionComponent{(int)startPos.x/8, (int)startPos.y/8});
+	coordinator->AddComponent<TilePositionComponent>(newGhost, TilePositionComponent{ (int)startPos.x / 8, (int)startPos.y / 8 });
 	coordinator->AddComponent<MotionComponent>(newGhost, MotionComponent{});
 	coordinator->AddComponent<DebugPathComponent>(newGhost, DebugPathComponent{ (float)type });
 
@@ -308,19 +347,23 @@ void GhostSystem::UpdateDebugGhostPath()
 
 		debugPathComponent.ClearPath();
 
-		if (ghostComponent.path.size() == 0)
+		/*if (ghostComponent.path.size() == 0)
 		{
 			continue;
-		}
+		}*/
 
 		std::vector<crushedpixel::Vec2> points;
 
 		points.push_back(crushedpixel::Vec2(transformComponent.GetPosition().x, transformComponent.GetPosition().y));
+		//#todo: this is for testing, remove this in the future
 
 		for (const auto& v : ghostComponent.path)
 		{
 			points.push_back(crushedpixel::Vec2(v.x, v.y));
 		}
+
+		glm::vec2 targetTile = ghostComponent.targetTile;
+		points.push_back({ targetTile.x, targetTile.y });
 
 		points = removeConsecutiveDuplicates(points);
 
@@ -335,7 +378,8 @@ void GhostSystem::UpdateGhostEyeDir(Entity ghost, const glm::vec3 dir)
 	if (ghostComponent.mode == GhostComponent::Mode::FRIGHTENED)
 	{
 		ghostComponent.part[1] = 4;
-	}else 
+	}
+	else
 	{
 		float dpUp = glm::dot(dir, UP);
 		float dpDown = glm::dot(dir, DOWN);

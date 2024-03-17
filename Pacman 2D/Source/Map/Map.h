@@ -17,7 +17,7 @@ class Map
 {
 public:
 
-	//hard load constants
+	//hard load constants in tiled layers
 	inline static const std::string WALL_LAYER = "Wall";
 	inline static const std::string ENERGIZED_PELLET_LAYER = "EnergizedPellet";
 	inline static const std::string PELLET_LAYER = "Pellet";
@@ -26,14 +26,25 @@ public:
 	inline static const std::string POSITION_LAYER = "Position";
 	inline static const std::string UI_LAYER = "UI";
 
-	inline static const std::string BLINKY_START_POS_NAME = "RedStart";
-	inline static const std::string PINKY_START_POS_NAME = "PinkyStart";
-	inline static const std::string INKY_START_POS_NAME = "LimeStart";
-	inline static const std::string CLYDE_START_POS_NAME = "OrangeStart";
+	//Blinky (red), Pinky (pink), Inky (cyan), and Clyde (orange)
+	inline static const std::string BLINKY_NAME = "Blinky";
+	inline static const std::string PINKY_NAME = "Pinky";
+	inline static const std::string INKY_NAME = "Inky";
+	inline static const std::string CLYDE_NAME = "Clyde";
+
+	inline static const std::string BLINKY_START_POS_NAME = BLINKY_NAME + "Start";
+	inline static const std::string PINKY_START_POS_NAME = PINKY_NAME + "Start";
+	inline static const std::string INKY_START_POS_NAME = INKY_NAME + "Start";
+	inline static const std::string CLYDE_START_POS_NAME = CLYDE_NAME + "Start";
 
 	inline static const std::string PLAYER_START_POS_NAME = "PlayerStart";
 	inline static const std::string GHOST_HOUSE_INSIDE_POS_NAME = "GhostHouseInside";
 	inline static const std::string GHOST_HOUSE_OUTSIDE_POS_NAME = "GhostHouseOutside";
+
+	inline static const std::string PINKY_SCATTER_POS_NAME = PINKY_NAME + "Scatter";
+	inline static const std::string INKY_SCATTER_POS_NAME = INKY_NAME + "Scatter";
+	inline static const std::string CLYDE_SCATTER_POS_NAME = CLYDE_NAME + "Scatter";
+	inline static const std::string BLINKY_SCATTER_POS_NAME = BLINKY_NAME + "Scatter";
 
 	Map();
 

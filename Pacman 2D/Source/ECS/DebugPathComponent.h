@@ -40,4 +40,3 @@ public:
 	std::vector<Vec2> vertices;
 	float id = 0;
 };
-

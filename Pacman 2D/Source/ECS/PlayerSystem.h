@@ -8,7 +8,7 @@
 #include <dy/dyutils.h>
 #include <ECS/SharedData.h>
 
-class PlayerSystem: public System
+class PlayerSystem : public System
 {
 public:
 	inline static const glm::vec3 UP = { 0, -1, 0 };
@@ -29,6 +29,7 @@ public:
 	void UpdatePacmanDirection();
 	bool WillMove();
 	void HandleMove();
+	void HandleCollision();
 	~PlayerSystem();
 private:
 	std::shared_ptr<Coordinator> coordinator;
@@ -62,4 +63,3 @@ private:
 	void CreatePlayer(const glm::vec2& startPos);
 	void ClearPlayer();
 };
-

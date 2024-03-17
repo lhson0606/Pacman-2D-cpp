@@ -7,7 +7,7 @@
 class DebugSystem : public System
 {
 public:
-    DebugSystem() = default;
+	DebugSystem() = default;
 	void Init();
 	void AddTestingPath();
 	void Draw(std::shared_ptr<Shader> shader);
@@ -25,4 +25,3 @@ private:
 	int vertexCount = 0;
 	bool shouldDraw = false;
 };
-

@@ -28,28 +28,28 @@
   <object id="2" name="GhostHouseOutside" x="112" y="92">
    <point/>
   </object>
-  <object id="3" name="LimeStart" x="96" y="116">
+  <object id="3" name="InkyStart" x="96" y="116">
    <point/>
   </object>
   <object id="4" name="PinkyStart" x="112" y="116">
    <point/>
   </object>
-  <object id="5" name="OrangeStart" x="128" y="116">
+  <object id="5" name="ClydeStart" x="128" y="116">
    <point/>
   </object>
-  <object id="6" name="RedStart" x="112" y="92">
+  <object id="6" name="BlinkyStart" x="112" y="92">
    <point/>
   </object>
-  <object id="10" name="PinkyDefaultTarget" x="19" y="-28">
+  <object id="10" name="PinkyScatter" x="19" y="-28">
    <point/>
   </object>
-  <object id="11" name="RedDefaultTarget" x="205.333" y="-26.6667">
+  <object id="11" name="BlinkyScatter" x="205.333" y="-26.6667">
    <point/>
   </object>
-  <object id="12" name="OrangeDefaultTarget" x="4.33333" y="281.667">
+  <object id="12" name="ClydeScatter" x="4.33333" y="281.667">
    <point/>
   </object>
-  <object id="13" name="LimeDefaultTarget" x="220.333" y="280">
+  <object id="13" name="InkyScatter" x="220.333" y="280">
    <point/>
   </object>
   <object id="29" name="PlayerStart" x="112" y="140">

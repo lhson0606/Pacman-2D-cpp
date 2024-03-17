@@ -2,7 +2,7 @@
 
 #include "ECS/ECS.h"
 
-class PhysicSystem: public System
+class PhysicSystem : public System
 {
 public:
 	PhysicSystem();
@@ -14,4 +14,3 @@ public:
 
 	std::shared_ptr<Coordinator> coordinator;
 };
-

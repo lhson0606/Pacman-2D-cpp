@@ -56,7 +56,7 @@ int App::Run()
 		glClear(GL_DEPTH_BUFFER_BIT);
 
 		Draw();
-		Update(0.0003f);
+		Update(dt);
 
 		//swap buffer for the next frame to be drawn
 		glfwSwapBuffers(window);
@@ -64,7 +64,7 @@ int App::Run()
 		glfwPollEvents();
 		startTime = endTime;
 		endTime = std::chrono::high_resolution_clock::now();
-		dt = std::chrono::duration<float>(endTime - startTime).count();
+		dt = min(std::chrono::duration<float>(endTime - startTime).count(), 0.0005f);
 	}
 
 	OnClose();
@@ -157,6 +157,7 @@ void App::InitSystems()
 
 	ghostSystem = coordinator->RegisterSystem<GhostSystem>();
 	ghostSystem->SetCoordinator(coordinator);
+	ghostSystem->SetSharedData(sharedData);
 	Signature ghostSystemSignature;
 	ghostSystemSignature.set(coordinator->GetComponentType<TransformComponent>());
 	ghostSystemSignature.set(coordinator->GetComponentType<GhostComponent>());
@@ -221,8 +222,8 @@ void App::OnCreate()
 		GhostComponent::BLINKY_COLOR,
 		GhostComponent::PINKY_COLOR,
 		GhostComponent::INKY_COLOR,
-		GhostComponent::CLYDE_COLOR		
-		);
+		GhostComponent::CLYDE_COLOR
+	);
 
 	playerSystem->Init(map);
 	playerSystem->LoadProjectMat(shaderManager->GetShader(ShaderManager::ShaderType::PACMAN), projection);

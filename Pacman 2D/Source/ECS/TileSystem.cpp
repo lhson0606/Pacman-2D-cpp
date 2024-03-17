@@ -167,7 +167,7 @@ void TileSystem::HandleWallLayer(TileData tileData, int w, int h)
 			if (tile && tile->getId() != 0)
 			{
 				auto entity = coordinator->CreateEntity();
-				coordinator->AddComponent<TileComponent>(entity, {tile->getId() });
+				coordinator->AddComponent<TileComponent>(entity, { tile->getId() });
 				coordinator->AddComponent<TransformComponent>(entity, { x + 0.0f, y + 0.0f, 0.0f });
 				coordinator->AddComponent<TilePositionComponent>(entity, { x, y });
 			}

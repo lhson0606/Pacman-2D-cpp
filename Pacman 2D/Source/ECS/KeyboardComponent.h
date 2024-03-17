@@ -22,4 +22,3 @@ private:
 	//using glfw key codes
 	std::bitset<DY_ENGINE_KEY_COUNT> keyPressedMap{ 0 };
 };
-

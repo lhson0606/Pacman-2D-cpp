@@ -7,7 +7,7 @@ KeyboardSystem::KeyboardSystem()
 
 void KeyboardSystem::PrepareAll()
 {
-	for(Entity e : entities)
+	for (Entity e : entities)
 	{
 		coordinator->GetComponent<KeyboardComponent>(e).Prepare();
 	}

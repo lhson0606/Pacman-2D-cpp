@@ -57,7 +57,7 @@ std::string Map::GetDebugString() const
 	{
 		for (int i = 0; i < width; i++)
 		{
-			if(IsWall(i, j))
+			if (IsWall(i, j))
 			{
 				ss << "# ";
 			}

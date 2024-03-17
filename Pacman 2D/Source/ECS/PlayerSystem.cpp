@@ -28,7 +28,7 @@ PlayerSystem::PlayerSystem()
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)8);
-	
+
 	glBindVertexArray(0);
 }
 
@@ -40,8 +40,8 @@ void PlayerSystem::Init(std::shared_ptr<Map> map)
 
 	assert(playerStartObj != nullptr);
 
-	float x = (float)playerStartObj->getPosition().x/map->GetTileSize();
-	float y = (float)playerStartObj->getPosition().y/map->GetTileSize();
+	float x = (float)playerStartObj->getPosition().x / map->GetTileSize();
+	float y = (float)playerStartObj->getPosition().y / map->GetTileSize();
 
 	glm::vec2 pos = glm::vec2(x, y);
 
@@ -50,47 +50,40 @@ void PlayerSystem::Init(std::shared_ptr<Map> map)
 	CreatePlayer(pos);
 }
 
-
 void PlayerSystem::Update(float dt)
 {
 	static double accumulatedTime = 0.0;
 	accumulatedTime += dt;
-	
+
 	float t = 1.5f * (1 + sin(accumulatedTime * 20));
 	int idx = 0;
 
-	if(coordinator->GetComponent<MotionComponent>(curPlayer).GetVelocity() != glm::vec3(0.0f))
+	if (coordinator->GetComponent<MotionComponent>(curPlayer).GetVelocity() != glm::vec3(0.0f))
 	{
 		float t = 1.5f * (1 + sin(accumulatedTime * 20));
 		idx = (int)t;
 	}
-	
+
 	coordinator->GetComponent<PlayerComponent>(curPlayer).SetAnimIdx(idx);
 
 	HandlePlayerInput();
 	HandleMove();
+	//handle wall collision
+	HandleCollision();
+	UpdatePacmanDirection();
 
-	//handle collision
-	auto& motion = coordinator->GetComponent<MotionComponent>(curPlayer);
+	//update game global state
 	auto pos = coordinator->GetComponent<TransformComponent>(curPlayer).GetPosition();
-	auto dir = glm::normalize(motion.GetVelocity());
-
-	if (isnan(dir.x) || isnan(dir.y))
-	{
-		dir = glm::vec3(0.0f);
-	}
 
 	if (dy::isInteger(pos.x) && dy::isInteger(pos.y))
 	{
-		if (map->IsWall((int)(pos.x + dir.x), (int)(pos.y + dir.y)))
+		if (sharedData->GetPacmanTilePos().x != (int)pos.x || sharedData->GetPacmanTilePos().y != (int)pos.y)
 		{
-			motion.SetVelocity(glm::vec3(0.0f));
+			sharedData->SetPacmanTilePos({ (int)pos.x, (int)pos.y });
+			coordinator->GetComponent<TilePositionComponent>(curPlayer).SetTilePosition((int)pos.x, (int)pos.y);
+			coordinator->GetComponent<PlayerComponent>(curPlayer).SetEnteredNewTile(true);
 		}
-
-		//DyLogger::LogArg(DyLogger::LOG_WARNING, "Player position: (%f, %f)", pos.x, pos.y);
 	}
-
-	UpdatePacmanDirection();
 }
 
 void PlayerSystem::Draw(std::shared_ptr<Shader> shader, std::shared_ptr<Texture> tex)
@@ -143,29 +136,29 @@ void PlayerSystem::HandlePlayerInput()
 	auto& keyboard = coordinator->GetComponent<KeyboardComponent>(curPlayer);
 	auto& motion = coordinator->GetComponent<MotionComponent>(curPlayer);
 
-	if(keyboard.IsKeyPressed(GLFW_KEY_W))
+	if (keyboard.IsKeyPressed(GLFW_KEY_W))
 	{
 		coordinator->GetComponent<PlayerComponent>(curPlayer).SetInputDirection(PlayerComponent::UP);
 		coordinator->GetComponent<KeyboardComponent>(curPlayer).Prepare();
 	}
 
-	if(keyboard.IsKeyPressed(GLFW_KEY_S))
+	if (keyboard.IsKeyPressed(GLFW_KEY_S))
 	{
 		coordinator->GetComponent<PlayerComponent>(curPlayer).SetInputDirection(PlayerComponent::DOWN);
 		coordinator->GetComponent<KeyboardComponent>(curPlayer).Prepare();
 	}
 
-	if(keyboard.IsKeyPressed(GLFW_KEY_A))
+	if (keyboard.IsKeyPressed(GLFW_KEY_A))
 	{
 		coordinator->GetComponent<PlayerComponent>(curPlayer).SetInputDirection(PlayerComponent::LEFT);
 		coordinator->GetComponent<KeyboardComponent>(curPlayer).Prepare();
 	}
 
-	if(keyboard.IsKeyPressed(GLFW_KEY_D))
+	if (keyboard.IsKeyPressed(GLFW_KEY_D))
 	{
 		coordinator->GetComponent<PlayerComponent>(curPlayer).SetInputDirection(PlayerComponent::RIGHT);
 		coordinator->GetComponent<KeyboardComponent>(curPlayer).Prepare();
-	}	
+	}
 }
 
 void PlayerSystem::UpdatePacmanDirection()
@@ -173,8 +166,8 @@ void PlayerSystem::UpdatePacmanDirection()
 	auto& motion = coordinator->GetComponent<MotionComponent>(curPlayer);
 	auto& transform = coordinator->GetComponent<TransformComponent>(curPlayer);
 	auto dir = glm::normalize(motion.GetVelocity());
-	
-	if(motion.GetVelocity() == glm::vec3(0.0f))
+
+	if (motion.GetVelocity() == glm::vec3(0.0f))
 	{
 		return;
 	}
@@ -186,19 +179,19 @@ void PlayerSystem::UpdatePacmanDirection()
 
 	float max = std::max({ dpUp, dpDown, dpLeft, dpRight });
 
-	if(max == dpUp)
+	if (max == dpUp)
 	{
-		transform.SetRotation({0.0f, 0.0f, -90.f});
+		transform.SetRotation({ 0.0f, 0.0f, -90.f });
 	}
-	else if(max == dpDown)
+	else if (max == dpDown)
 	{
 		transform.SetRotation({ 0.0f, 0.0f, 90.f });
 	}
-	else if(max == dpLeft)
+	else if (max == dpLeft)
 	{
-		transform.SetRotation({ 0.0f, 0.0f, -180.f});
+		transform.SetRotation({ 0.0f, 0.0f, -180.f });
 	}
-	else if(max == dpRight)
+	else if (max == dpRight)
 	{
 		transform.SetRotation({ 0.0f, 0.0f, 0.0f });
 	}
@@ -206,7 +199,7 @@ void PlayerSystem::UpdatePacmanDirection()
 
 bool PlayerSystem::WillMove()
 {
-	if(coordinator->GetComponent<PlayerComponent>(curPlayer).GetInputDirection() == PlayerComponent::NONE)
+	if (coordinator->GetComponent<PlayerComponent>(curPlayer).GetInputDirection() == PlayerComponent::NONE)
 	{
 		return false;
 	}
@@ -229,6 +222,12 @@ bool PlayerSystem::WillMove()
 		else
 		{
 			result = !map->IsWall((int)curPos.x, (int)curPos.y - 1);
+			coordinator->GetComponent<PlayerComponent>(curPlayer).SetEnteredNewTile(false);
+
+			if (!result && !coordinator->GetComponent<PlayerComponent>(curPlayer).HasEnteredNewTile())
+			{
+				coordinator->GetComponent<PlayerComponent>(curPlayer).SetInputDirection(PlayerComponent::NONE);
+			}
 		}
 		break;
 	case PlayerComponent::DOWN:
@@ -243,6 +242,12 @@ bool PlayerSystem::WillMove()
 		else
 		{
 			result = !map->IsWall((int)curPos.x, (int)curPos.y + 1);
+			coordinator->GetComponent<PlayerComponent>(curPlayer).SetEnteredNewTile(false);
+
+			if (!result && !coordinator->GetComponent<PlayerComponent>(curPlayer).HasEnteredNewTile())
+			{
+				coordinator->GetComponent<PlayerComponent>(curPlayer).SetInputDirection(PlayerComponent::NONE);
+			}
 		}
 		break;
 	case PlayerComponent::LEFT:
@@ -257,6 +262,12 @@ bool PlayerSystem::WillMove()
 		else
 		{
 			result = !map->IsWall((int)curPos.x - 1, (int)curPos.y);
+			coordinator->GetComponent<PlayerComponent>(curPlayer).SetEnteredNewTile(false);
+
+			if (!result && !coordinator->GetComponent<PlayerComponent>(curPlayer).HasEnteredNewTile())
+			{
+				coordinator->GetComponent<PlayerComponent>(curPlayer).SetInputDirection(PlayerComponent::NONE);
+			}
 		}
 
 		break;
@@ -272,6 +283,12 @@ bool PlayerSystem::WillMove()
 		else
 		{
 			result = !map->IsWall((int)curPos.x + 1, (int)curPos.y);
+			coordinator->GetComponent<PlayerComponent>(curPlayer).SetEnteredNewTile(false);
+
+			if (!result && !coordinator->GetComponent<PlayerComponent>(curPlayer).HasEnteredNewTile())
+			{
+				coordinator->GetComponent<PlayerComponent>(curPlayer).SetInputDirection(PlayerComponent::NONE);
+			}
 		}
 		break;
 	case PlayerComponent::NONE:
@@ -293,24 +310,46 @@ void PlayerSystem::HandleMove()
 
 	switch (coordinator->GetComponent<PlayerComponent>(curPlayer).GetInputDirection())
 	{
-		case PlayerComponent::UP:
-			coordinator->GetComponent<MotionComponent>(curPlayer).SetVelocity(UP*playerSpeed);
-			break;
-		case PlayerComponent::DOWN:
-			coordinator->GetComponent<MotionComponent>(curPlayer).SetVelocity(DOWN*playerSpeed);
-			break;
-		case PlayerComponent::LEFT:
-			coordinator->GetComponent<MotionComponent>(curPlayer).SetVelocity(LEFT*playerSpeed);
-			break;
-		case PlayerComponent::RIGHT:
-			coordinator->GetComponent<MotionComponent>(curPlayer).SetVelocity(RIGHT*playerSpeed);
-			break;
-		default:
-			break;
+	case PlayerComponent::UP:
+		coordinator->GetComponent<MotionComponent>(curPlayer).SetVelocity(UP * playerSpeed);
+		break;
+	case PlayerComponent::DOWN:
+		coordinator->GetComponent<MotionComponent>(curPlayer).SetVelocity(DOWN * playerSpeed);
+		break;
+	case PlayerComponent::LEFT:
+		coordinator->GetComponent<MotionComponent>(curPlayer).SetVelocity(LEFT * playerSpeed);
+		break;
+	case PlayerComponent::RIGHT:
+		coordinator->GetComponent<MotionComponent>(curPlayer).SetVelocity(RIGHT * playerSpeed);
+		break;
+	default:
+		break;
 	}
 
 	coordinator->GetComponent<KeyboardComponent>(curPlayer).Prepare();
 	coordinator->GetComponent<PlayerComponent>(curPlayer).SetInputDirection(PlayerComponent::NONE);
+}
+
+void PlayerSystem::HandleCollision()
+{
+	auto& motion = coordinator->GetComponent<MotionComponent>(curPlayer);
+	auto pos = coordinator->GetComponent<TransformComponent>(curPlayer).GetPosition();
+	auto dir = glm::normalize(motion.GetVelocity());
+
+	if (isnan(dir.x) || isnan(dir.y))
+	{
+		dir = glm::vec3(0.0f);
+	}
+
+	if (dy::isInteger(pos.x) && dy::isInteger(pos.y))
+	{
+		if (map->IsWall((int)(pos.x + dir.x), (int)(pos.y + dir.y)))
+		{
+			motion.SetVelocity(glm::vec3(0.0f));
+		}
+
+		//DyLogger::LogArg(DyLogger::LOG_WARNING, "Player position: (%f, %f)", pos.x, pos.y);
+	}
 }
 
 PlayerSystem::~PlayerSystem()
@@ -326,11 +365,11 @@ void PlayerSystem::CreatePlayer(const glm::vec2& startPos)
 
 	auto entity = coordinator->CreateEntity();
 
-	coordinator->AddComponent<PlayerComponent>(entity, {1});
-	coordinator->AddComponent<TransformComponent>(entity, {startPos.x - TILE_OFFSET, startPos.y - TILE_OFFSET, 0.0f});
-	coordinator->AddComponent<TilePositionComponent>(entity, {(int)startPos.x, (int)startPos.y});
+	coordinator->AddComponent<PlayerComponent>(entity, { 1 });
+	coordinator->AddComponent<TransformComponent>(entity, { startPos.x - TILE_OFFSET, startPos.y - TILE_OFFSET, 0.0f });
+	coordinator->AddComponent<TilePositionComponent>(entity, { (int)startPos.x, (int)startPos.y });
 	coordinator->AddComponent<MotionComponent>(entity, {});
-	coordinator->AddComponent<KeyboardComponent>(entity, {"pacman"});
+	coordinator->AddComponent<KeyboardComponent>(entity, { "pacman" });
 
 	curPlayer = entity;
 }

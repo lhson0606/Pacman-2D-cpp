@@ -4,5 +4,4 @@
 
 class SpriteSystem : public System
 {
-
 };

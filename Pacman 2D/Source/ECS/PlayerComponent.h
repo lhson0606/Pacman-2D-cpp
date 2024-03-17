@@ -22,6 +22,8 @@ public:
 	void SetEnergized(int duration);
 	int GetAnimIdx();
 	void SetAnimIdx(int idx);
+	bool HasEnteredNewTile();
+	void SetEnteredNewTile(bool val);
 	MoveDirection GetInputDirection();
 	void SetInputDirection(MoveDirection dir);
 private:
@@ -29,8 +31,8 @@ private:
 	int pelletCount = 0;
 	bool isDead = false;
 	bool isEnergized = false;
-	//#todo: use Sprite class instead 
+	//#todo: use Sprite class instead
 	int animIdx = 0;
+	bool hasEnteredNewTile = false;
 	MoveDirection inpDir = NONE;
 };
-
