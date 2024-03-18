@@ -18,23 +18,20 @@ dy::AStar::~AStar()
 {
 }
 
-std::unordered_map<glm::ivec2, glm::ivec2> cameFrom;
-std::unordered_map<glm::ivec2, float> gScore;
-std::unordered_map<glm::ivec2, float> fScore;
-dy::Comparator comparator = dy::Comparator{ &fScore };
-std::priority_queue<glm::ivec2, std::vector<glm::ivec2>, decltype(comparator)> openSet(comparator);
-std::bitset<2000> isPopped{ 0 };
-std::bitset<2000> isVisited{ 0 };
+static std::unordered_map<glm::ivec2, glm::ivec2> cameFrom;
+static std::unordered_map<glm::ivec2, float> gScore;
+static std::unordered_map<glm::ivec2, float> fScore;
+static dy::Comparator comparator = dy::Comparator{ &fScore };
+static std::priority_queue<glm::ivec2, std::vector<glm::ivec2>, decltype(comparator)> openSet(comparator);
+static std::bitset<2000> isPopped{ 0 };
+static std::bitset<2000> isVisited{ 0 };
 
 std::vector<glm::ivec2> dy::AStar::FindPath(const glm::ivec2& start, const glm::ivec2& end, int initialDir)
 {
 	cameFrom.clear();
-    gScore.clear();
-    
-	while(!openSet.empty())
-	{
-		openSet.pop();
-	}
+	gScore.clear();
+
+	openSet = std::priority_queue<glm::ivec2, std::vector<glm::ivec2>, decltype(comparator)>{ comparator };
 
 	//fScore must be cleared after openSet is cleared
 	fScore.clear();
@@ -45,7 +42,7 @@ std::vector<glm::ivec2> dy::AStar::FindPath(const glm::ivec2& start, const glm::
 
 	gScore[start] = 0.0f;
 	fScore[start] = Heuristic(start, end);
-	openSet.push(start);
+	openSet.emplace(start);
 
 	int w = map->GetWidth();
 
@@ -58,7 +55,7 @@ std::vector<glm::ivec2> dy::AStar::FindPath(const glm::ivec2& start, const glm::
 			std::vector<glm::ivec2> path;
 			while (current != start)
 			{
-				path.push_back(current);
+				path.emplace_back(current);
 				current = cameFrom[current];
 			}
 			return ReconstructPath(path);
@@ -100,7 +97,7 @@ std::vector<glm::ivec2> dy::AStar::FindPath(const glm::ivec2& start, const glm::
 
 				if (isPopped[neighbour.x * w + neighbour.y] == 0)
 				{
-					openSet.push(neighbour);
+					openSet.emplace(neighbour);
 					isPopped[neighbour.x * w + neighbour.y] = 0;
 				}
 			}
@@ -110,9 +107,11 @@ std::vector<glm::ivec2> dy::AStar::FindPath(const glm::ivec2& start, const glm::
 	return std::vector<glm::ivec2>();
 }
 
+std::vector<glm::ivec2> result;
+
 std::vector<glm::ivec2> dy::AStar::GetNeighbours(const glm::ivec2& pos)
 {
-	std::vector<glm::ivec2> result;
+	result.clear();
 
 	for (int i = 0; i < sizeof(DIRECTIONS) / sizeof(DIRECTIONS[0]); i++)
 	{
@@ -163,7 +162,7 @@ std::vector<glm::ivec2> dy::AStar::GetNeighbours(const glm::ivec2& pos)
 		}
 
 		//if the next position is not a wall, we can add the next position
-		result.push_back(next);
+		result.emplace_back(next);
 	}
 
 	return result;

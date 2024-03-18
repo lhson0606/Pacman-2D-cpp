@@ -6,6 +6,7 @@
 #include "Render/Shader.h"
 #include "Render/Texture.h"
 #include "ECS/SharedData.h"
+#include "Algorithm/AStar.h"
 
 #define GHOST_COUNT 4
 
@@ -77,6 +78,8 @@ private:
 	void UpdateGhostEyeDir(Entity ghost, const glm::vec3 dir);
 
 	std::shared_ptr<Map> map;
+
+	dy::AStar astar = dy::AStar{ map };
 
 	std::shared_ptr<SharedData> sharedData;
 

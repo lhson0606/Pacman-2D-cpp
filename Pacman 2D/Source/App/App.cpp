@@ -64,7 +64,7 @@ int App::Run()
 		glfwPollEvents();
 		startTime = endTime;
 		endTime = std::chrono::high_resolution_clock::now();
-		dt = max(std::chrono::duration<float>(endTime - startTime).count(), 0.0005f);
+		dt = std::chrono::duration<float>(endTime - startTime).count();
 	}
 
 	OnClose();
@@ -268,11 +268,14 @@ void App::Draw()
 		textureManager->GetTexture(TextureManager::TextureType::MAP)
 	);
 
-	debugSystem->Draw(
-		shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH),
-		shaderManager->GetShader(ShaderManager::ShaderType::TARGET_TILE),
-		textureManager->GetTexture(TextureManager::TextureType::TARGET_TILE)
-	);
+	if (false)
+	{
+		debugSystem->Draw(
+			shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH),
+			shaderManager->GetShader(ShaderManager::ShaderType::TARGET_TILE),
+			textureManager->GetTexture(TextureManager::TextureType::TARGET_TILE)
+		);
+	}
 
 	ghostSystem->Draw(
 		shaderManager->GetShader(ShaderManager::ShaderType::GHOST),

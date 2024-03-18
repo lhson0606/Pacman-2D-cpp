@@ -10,7 +10,6 @@
 #include "dy/Log.h"
 #include "dy/glutils.h"
 #include <math.h>
-#include "Algorithm/AStar.h"
 
 void GhostSystem::Init(std::shared_ptr<Map> map)
 {
@@ -99,6 +98,8 @@ void GhostSystem::Init(std::shared_ptr<Map> map)
 	glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(5 * sizeof(float)));
 
 	glBindVertexArray(0);
+
+	astar = dy::AStar::AStar(map);
 }
 
 void GhostSystem::LoadProjectMat(std::shared_ptr<Shader> shader, glm::mat4 proj)
@@ -137,7 +138,6 @@ void GhostSystem::Update(float dt)
 	int temp = (t > 0.5f) ? 1 : 0;
 
 	//testing
-	dy::AStar astar{ map };
 
 	for (auto e : entities)
 	{
@@ -150,57 +150,26 @@ void GhostSystem::Update(float dt)
 
 		UpdateTargetPos(e);
 
-		ghostComponent.path = astar.FindPath(
-			{ transform.GetPosition().x, transform.GetPosition().y },
-			{ ghostComponent.targetPos.x, ghostComponent.targetPos.y },
-			ghostComponent.dir
-		);
-
-		if (ghostComponent.path.size() == 0)
+		if (true)
 		{
-			motion.SetVelocity({0,0,0});
-			continue;
-		}
+			ghostComponent.path = astar.FindPath(
+				{ transform.GetPosition().x, transform.GetPosition().y },
+				{ ghostComponent.targetPos.x, ghostComponent.targetPos.y },
+				ghostComponent.dir
+			);
 
-		glm::ivec2 targetTile = ghostComponent.path[0];
-
-		//if the ghost is at the target tile, remove it from the path
-		while (dy::isEqual(targetTile.x, transform.GetPosition().x) && dy::isEqual(targetTile.y, transform.GetPosition().y))
-		{
-			ghostComponent.path.erase(ghostComponent.path.begin());
-			coordinator->GetComponent<MotionComponent>(e).SetVelocity(glm::vec3(0));
-			transform.SetPosition(glm::vec3(targetTile.x, targetTile.y, 0));
-			if (ghostComponent.path.size() == 0)
-			{
-				break;
-			}
-			targetTile = ghostComponent.path[0];
-		}
-
-		if (ghostComponent.path.size() == 0)
-		{
-			continue;
-		}
+			//recalculate path
+			UpdateDebugGhostPath();
+			UpdateDebugTargetPos();
+		}		
 
 		////set the direction to the next tile
-		//glm::vec3 dir = glm::normalize(glm::vec3(targetTile.x, targetTile.y, 0) - transform.GetPosition());
-		////our normalizer can return nan!?
-
-		//if (isnan(dir.x) || isnan(dir.y) || isnan(dir.z))
-		//{
-		//	dir = glm::vec3(0);
-		//	DyLogger::LogArg(DyLogger::LOG_ERROR, "Ghost direction is nan!");
-		//}
 
 		//motion.SetVelocity(dir * ghostSpeed);
 		//UpdateGhostEyeDir(e, dir);
 	}
 
 	accumulatedTime += dt;
-
-	//recalculate path
-	UpdateDebugGhostPath();
-	UpdateDebugTargetPos();
 }
 
 void GhostSystem::Draw(std::shared_ptr<Shader> shader, std::shared_ptr<Texture> tex)
