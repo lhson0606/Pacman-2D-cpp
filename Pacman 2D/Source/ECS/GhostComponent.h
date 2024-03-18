@@ -29,6 +29,15 @@ public:
 		IN_CAGE
 	};
 
+	enum Direction
+	{
+		UP,
+		DOWN,
+		LEFT,
+		RIGHT,
+		NONE
+	};
+
 	int mode = SCATTER;
 	int state = IN_CAGE;
 	int part[2] = { 0, 0 };
@@ -38,7 +47,7 @@ public:
 	int type = -1;
 	glm::vec2 targetPos = { 0,0 };
 	glm::vec2 scatterPos = { 0,0 };
-	int dir = 0;
+	int dirIdx = NONE;
 
 	GhostComponent();
 };

@@ -268,7 +268,7 @@ void App::Draw()
 		textureManager->GetTexture(TextureManager::TextureType::MAP)
 	);
 
-	if (false)
+	if (true)
 	{
 		debugSystem->Draw(
 			shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH),

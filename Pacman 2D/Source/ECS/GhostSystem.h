@@ -7,6 +7,7 @@
 #include "Render/Texture.h"
 #include "ECS/SharedData.h"
 #include "Algorithm/AStar.h"
+#include "ECS/GhostComponent.h"
 
 #define GHOST_COUNT 4
 
@@ -58,6 +59,14 @@ public:
 
 	void UpdateDebugTargetPos();
 
+	void UpdateGhostDirIdx(Entity ghost);
+
+	glm::vec3 GetDirectionVec(int dir);
+
+	std::vector<int> GetValidDirs(Entity ghost, glm::vec2 pos);
+
+	void UpdateGhostVelocity(Entity ghost);
+
 	~GhostSystem();
 
 private:
@@ -75,7 +84,7 @@ private:
 
 	void UpdateDebugGhostPath();
 
-	void UpdateGhostEyeDir(Entity ghost, const glm::vec3 dir);
+	void UpdateGhostEyeDir(Entity ghost);
 
 	std::shared_ptr<Map> map;
 

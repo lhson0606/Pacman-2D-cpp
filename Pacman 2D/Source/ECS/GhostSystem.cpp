@@ -99,7 +99,7 @@ void GhostSystem::Init(std::shared_ptr<Map> map)
 
 	glBindVertexArray(0);
 
-	astar = dy::AStar::AStar(map);
+	astar = dy::AStar(map);
 }
 
 void GhostSystem::LoadProjectMat(std::shared_ptr<Shader> shader, glm::mat4 proj)
@@ -155,7 +155,7 @@ void GhostSystem::Update(float dt)
 			ghostComponent.path = astar.FindPath(
 				{ transform.GetPosition().x, transform.GetPosition().y },
 				{ ghostComponent.targetPos.x, ghostComponent.targetPos.y },
-				ghostComponent.dir
+				ghostComponent.dirIdx
 			);
 
 			//recalculate path
@@ -163,10 +163,15 @@ void GhostSystem::Update(float dt)
 			UpdateDebugTargetPos();
 		}		
 
-		////set the direction to the next tile
+		/*if (e != ghosts[BLINKY])
+		{
+			continue;
+		}*/
 
-		//motion.SetVelocity(dir * ghostSpeed);
-		//UpdateGhostEyeDir(e, dir);
+		////set the direction to the next tile
+		UpdateGhostDirIdx(e);
+		UpdateGhostVelocity(e);
+		UpdateGhostEyeDir(e);
 	}
 
 	accumulatedTime += dt;
@@ -286,11 +291,11 @@ void GhostSystem::UpdateTargetPos(Entity e)
 	auto& ghostComponent = coordinator->GetComponent<GhostComponent>(e);
 	auto& transform = coordinator->GetComponent<TransformComponent>(e);
 
-	/*if (ghostComponent.mode == GhostComponent::Mode::SCATTER)
+	if (ghostComponent.mode == GhostComponent::Mode::SCATTER)
 	{
 		ghostComponent.targetPos = ghostComponent.scatterPos;
 		return;
-	}*/
+	}
 
 	if (ghostComponent.mode == GhostComponent::Mode::FRIGHTENED)
 	{
@@ -370,6 +375,214 @@ void GhostSystem::UpdateDebugTargetPos()
 	clydeDebug.targetPositions = { clydeTargetPos.x, clydeTargetPos.y, 0 };
 }
 
+void GhostSystem::UpdateGhostDirIdx(Entity ghost)
+{
+	std::vector<int> possibleDirs = GetValidDirs(ghost, coordinator->GetComponent<TransformComponent>(ghost).GetPosition());
+	auto& ghostComponent = coordinator->GetComponent<GhostComponent>(ghost);
+	
+	if (possibleDirs.size() == 1)
+	{
+		ghostComponent.dirIdx = possibleDirs[0];
+		return;
+	}
+
+	switch (ghostComponent.mode)
+	{
+	case GhostComponent::Mode::FRIGHTENED:
+			//pick a random direction
+			ghostComponent.dirIdx = possibleDirs[dy::ranInt(0, possibleDirs.size() - 1)];
+			break;
+	case GhostComponent::Mode::CHASE:
+	case GhostComponent::Mode::SCATTER:
+	{
+		//pick the direction that will bring the ghost closer to the target
+		auto firstDir = GetDirectionVec(possibleDirs[0]);
+		float minDist = glm::distance(
+			coordinator->GetComponent<TransformComponent>(ghost).GetPosition() + firstDir,
+			glm::vec3(ghostComponent.targetPos.x, ghostComponent.targetPos.y, 0)
+		);
+
+		ghostComponent.dirIdx = possibleDirs[0];
+
+		for (auto d : possibleDirs)
+		{
+			auto dir = GetDirectionVec(d);
+			float dist = glm::distance(
+				coordinator->GetComponent<TransformComponent>(ghost).GetPosition() + dir,
+				glm::vec3(ghostComponent.targetPos.x, ghostComponent.targetPos.y, 0)
+			);
+
+			if (dist < minDist)
+			{
+				minDist = dist;
+				ghostComponent.dirIdx = d;
+			}
+		}
+
+		break;
+	}		
+	default:
+		break;
+	}
+}
+
+glm::vec3 GhostSystem::GetDirectionVec(int dir)
+{
+	switch (dir)
+	{
+	case GhostComponent::UP:
+		return UP;
+		break;
+	case GhostComponent::DOWN:
+		return DOWN;
+		break;
+	case GhostComponent::LEFT:
+		return LEFT;
+		break;
+	case GhostComponent::RIGHT:
+		return RIGHT;
+		break;
+	case GhostComponent::NONE:
+		return glm::vec3(0);
+		break;
+	default:
+		break;
+	}
+}
+
+std::vector<int> GhostSystem::GetValidDirs(Entity ghost, glm::vec2 pos)
+{
+	std::vector<int> temp;
+	std::vector<int> result;
+
+	if (!dy::isInteger(pos.x) && !dy::isInteger(pos.y))
+	{
+		throw std::exception("Invalid position");
+	}
+
+	auto& ghostComponent = coordinator->GetComponent<GhostComponent>(ghost);
+
+	if (ghostComponent.dirIdx == GhostComponent::NONE)
+	{
+		if (!dy::isInteger(pos.x))
+		{
+			temp.emplace_back(GhostComponent::LEFT);
+			temp.emplace_back(GhostComponent::RIGHT);
+		}
+
+		if (!dy::isInteger(pos.y))
+		{
+			temp.emplace_back(GhostComponent::UP);
+			temp.emplace_back(GhostComponent::DOWN);
+		}	
+		
+	}
+	else if (dy::isInteger(pos.x) && dy::isInteger(pos.y))
+	{
+		//x and y are both integers
+		if (!map->IsWall(pos.x, pos.y - 1))
+		{
+			temp.emplace_back(GhostComponent::UP);
+		}
+
+		if (!map->IsWall(pos.x, pos.y + 1))
+		{
+			temp.emplace_back(GhostComponent::DOWN);
+		}
+
+		if (!map->IsWall(pos.x - 1, pos.y))
+		{
+			temp.emplace_back(GhostComponent::LEFT);
+		}
+
+		if (!map->IsWall(pos.x + 1, pos.y))
+		{
+			temp.emplace_back(GhostComponent::RIGHT);
+		}
+
+		//the ghost cannot go backward
+	}
+	else if (!dy::isInteger(pos.y))
+	{
+		if (ghostComponent.dirIdx == GhostComponent::NONE)
+		{
+			temp.emplace_back(GhostComponent::UP);
+			temp.emplace_back(GhostComponent::DOWN);
+		}
+		else
+		{
+			temp.emplace_back(ghostComponent.dirIdx);
+		}
+		
+	}else if (!dy::isInteger(pos.x))
+	{
+		if (ghostComponent.dirIdx == GhostComponent::NONE)
+		{
+			temp.emplace_back(GhostComponent::RIGHT);
+			temp.emplace_back(GhostComponent::LEFT);
+		}
+		else
+		{
+			temp.emplace_back(ghostComponent.dirIdx);
+		}
+	}
+	
+	for (auto e : temp)
+	{
+		if (!dy::isInteger(pos.x) || !dy::isInteger(pos.y))
+		{
+			result.emplace_back(e);
+			continue;
+		}
+
+		switch (e)
+		{
+		case::GhostComponent::UP:
+			if (ghostComponent.dirIdx != GhostComponent::DOWN && !map->IsWall(pos.x, pos.y-1))
+			{
+				result.emplace_back(e);
+			}
+			break;
+		case::GhostComponent::DOWN:
+			if (ghostComponent.dirIdx != GhostComponent::UP && !map->IsWall(pos.x, pos.y + 1))
+			{
+				result.emplace_back(e);
+			}
+			break;
+		case::GhostComponent::LEFT:
+			if (ghostComponent.dirIdx != GhostComponent::RIGHT && !map->IsWall(pos.x-1, pos.y))
+			{
+				result.emplace_back(e);
+			}
+			break;
+		case::GhostComponent::RIGHT:
+			if (ghostComponent.dirIdx != GhostComponent::LEFT && !map->IsWall(pos.x + 1, pos.y))
+			{
+				result.emplace_back(e);
+			}
+			break;
+		default:
+			break;
+		}
+	}
+
+	if ((result.size() == 0))
+	{
+		throw std::exception("No valid direction");
+	}
+
+	return result;
+}
+
+void GhostSystem::UpdateGhostVelocity(Entity ghost)
+{
+	auto currentDirIdx = coordinator->GetComponent<GhostComponent>(ghost).dirIdx;
+	auto& motion = coordinator->GetComponent<MotionComponent>(ghost);
+	motion.SetVelocity(
+		GetDirectionVec(currentDirIdx) * ghostSpeed
+	);
+}
+
 GhostSystem::~GhostSystem()
 {
 	//assume that if our system is deleted, our program is closing, no need to call CleanUp
@@ -438,7 +651,7 @@ void GhostSystem::UpdateDebugGhostPath()
 	}
 }
 
-void GhostSystem::UpdateGhostEyeDir(Entity ghost, const glm::vec3 dir)
+void GhostSystem::UpdateGhostEyeDir(Entity ghost)
 {
 	auto& ghostComponent = coordinator->GetComponent<GhostComponent>(ghost);
 
@@ -448,32 +661,40 @@ void GhostSystem::UpdateGhostEyeDir(Entity ghost, const glm::vec3 dir)
 	}
 	else
 	{
-		float dpUp = glm::dot(dir, UP);
-		float dpDown = glm::dot(dir, DOWN);
-		float dpLeft = glm::dot(dir, LEFT);
-		float dpRight = glm::dot(dir, RIGHT);
-
-		float max = std::max({ dpUp, dpDown, dpLeft, dpRight });
-
-		if (max == dpUp)
+		/*if (max == dpUp)
 		{
 			ghostComponent.part[1] = 0;
-			ghostComponent.dir = dy::AStar::AStar::UP;
 		}
 		else if (max == dpDown)
 		{
 			ghostComponent.part[1] = 2;
-			ghostComponent.dir = dy::AStar::AStar::DOWN;
 		}
 		else if (max == dpLeft)
 		{
 			ghostComponent.part[1] = 3;
-			ghostComponent.dir = dy::AStar::AStar::LEFT;
 		}
 		else if (max == dpRight)
 		{
 			ghostComponent.part[1] = 1;
-			ghostComponent.dir = dy::AStar::AStar::RIGHT;
+		}*/
+		switch (ghostComponent.dirIdx)
+		{
+		case GhostComponent::UP:
+			ghostComponent.part[1] = 0;
+			break;
+		case GhostComponent::DOWN:
+			ghostComponent.part[1] = 2;
+			break;
+		case GhostComponent::LEFT:
+			ghostComponent.part[1] = 3;
+			break;
+		case GhostComponent::RIGHT:
+			ghostComponent.part[1] = 1;
+			break;
+		default:
+			break;
 		}
+
+		
 	}
 }
