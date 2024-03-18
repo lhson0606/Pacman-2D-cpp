@@ -23,8 +23,6 @@ static std::unordered_map<glm::ivec2, float> gScore;
 static std::unordered_map<glm::ivec2, float> fScore;
 static dy::Comparator comparator = dy::Comparator{ &fScore };
 static std::priority_queue<glm::ivec2, std::vector<glm::ivec2>, decltype(comparator)> openSet(comparator);
-static std::bitset<2000> isPopped{ 0 };
-static std::bitset<2000> isVisited{ 0 };
 
 std::vector<glm::ivec2> dy::AStar::FindPath(const glm::ivec2& start, const glm::ivec2& end, int initialDir)
 {
@@ -35,8 +33,6 @@ std::vector<glm::ivec2> dy::AStar::FindPath(const glm::ivec2& start, const glm::
 
 	//fScore must be cleared after openSet is cleared
 	fScore.clear();
-	isPopped.reset();
-	isVisited.reset();
 
 	this->currentDir = initialDir;
 
@@ -62,7 +58,6 @@ std::vector<glm::ivec2> dy::AStar::FindPath(const glm::ivec2& start, const glm::
 		}
 
 		openSet.pop();
-		isPopped[current.x*w + current.y] = 1;
 
 		auto neighbours = GetNeighbours(current);
 
@@ -72,34 +67,21 @@ std::vector<glm::ivec2> dy::AStar::FindPath(const glm::ivec2& start, const glm::
 			//auto test = gScore.find(neighbour)->second;
 			//use gScore[neighbour] will create a new element if it does not exist, so be careful, use contains() instead
 			//so yeah this code is pretty weird :))
-			//if (!gScore.contains(neighbour))
-			//{
-			//	cameFrom[neighbour] = current;
-			//	gScore[neighbour] = tentativeGScore;
-			//	fScore[neighbour] = gScore[neighbour] + Heuristic(neighbour, end);
-
-			//	//according to Wiki we should only add the neighbour to the open set if it is not in the open set
-			//	//but I cannot find a way to check if the element is in std::priority_queue or not, it sucks ...
-			//	if (isPopped[neighbour.x * w + neighbour.y] == 0)
-			//	{
-			//		openSet.push(neighbour);
-			//		isPopped[neighbour.x * w + neighbour.y] = 0;
-			//		count++;
-			//	}				
-			//}
-			//else 
-			if (tentativeGScore < gScore[neighbour] || !isVisited[neighbour.x * w + neighbour.y])
+			if (!gScore.contains(neighbour))
 			{
 				cameFrom[neighbour] = current;
 				gScore[neighbour] = tentativeGScore;
-				isVisited[neighbour.x * w + neighbour.y] = 1;
 				fScore[neighbour] = gScore[neighbour] + Heuristic(neighbour, end);
 
-				if (isPopped[neighbour.x * w + neighbour.y] == 0)
-				{
-					openSet.emplace(neighbour);
-					isPopped[neighbour.x * w + neighbour.y] = 0;
-				}
+				openSet.emplace(neighbour);
+			}
+			else if (tentativeGScore < gScore[neighbour])
+			{
+				cameFrom[neighbour] = current;
+				gScore[neighbour] = tentativeGScore;
+				fScore[neighbour] = gScore[neighbour] + Heuristic(neighbour, end);
+
+				openSet.emplace(neighbour);
 			}
 		}
 	}
@@ -115,42 +97,25 @@ std::vector<glm::ivec2> dy::AStar::GetNeighbours(const glm::ivec2& pos)
 
 	for (int i = 0; i < sizeof(DIRECTIONS) / sizeof(DIRECTIONS[0]); i++)
 	{
-		//the ghost cannot go back, so yeah ... not really A* algorithm
-		/*if (i == DOWN && currentDir == DOWN)
-		{
-			continue;
-		}
-		else if (i == UP && currentDir == UP)
-		{
-			continue;
-		}
-		else if (i == RIGHT && currentDir == RIGHT)
-		{
-			continue;
-		}
-		else if (i == LEFT && currentDir == LEFT)
-		{
-			continue;
-		}*/
 
 		auto next = pos + DIRECTIONS[i];
 
 		if (next.x < 0)
 		{
-			continue;
+			next = { map->GetWidth() - 1, next.y };
 		}
 		else if (next.x >= map->GetWidth())
 		{
-			continue;
+			next = { 0, next.y };
 		}
 
 		if (next.y < 0)
 		{
-			continue;
+			next = { next.x, map->GetHeight() - 1 };
 		}
 		else if (next.y >= map->GetHeight())
 		{
-			continue;
+			next = { next.x, 0 };
 		}
 
 

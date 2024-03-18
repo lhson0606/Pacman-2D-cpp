@@ -137,18 +137,62 @@ void GhostSystem::Update(float dt)
 	float t = 0.5f * (1 + sin(accumulatedTime * 20));
 	int temp = (t > 0.5f) ? 1 : 0;
 
-	//testing
+	assert(entities.size() == GHOST_COUNT);
 
 	for (auto e : entities)
 	{
+		/*if (ghosts[BLINKY] != e)
+		{
+			continue;
+		}*/
+
 		auto& ghostComponent = coordinator->GetComponent<GhostComponent>(e);
 		ghostComponent.part[0] = temp;
-
 		auto& transform = coordinator->GetComponent<TransformComponent>(e);
-
 		auto& motion = coordinator->GetComponent<MotionComponent>(e);
+		auto pos = transform.GetPosition();
 
-		UpdateTargetPos(e);
+		UpdateTargetPos(e);	
+
+		auto& tilePosCom = coordinator->GetComponent<TilePositionComponent>(e);
+
+		if (dy::isInteger(pos.x) && dy::isInteger(pos.y))
+		{
+			if (!dy::isEqual(tilePosCom.x, pos.x) || !dy::isEqual(tilePosCom.y, pos.y))
+			{
+				tilePosCom.x = (int)pos.x;
+				tilePosCom.y = (int)pos.y;
+				ghostComponent.hasEnteredNewTile = true;
+			}
+
+			if (dy::isEqual(pos.x, map->GetWidth()))
+			{
+				transform.SetPosition({ 0, pos.y, 0 });
+			}
+			else if (dy::isEqual(pos.x, -1))
+			{
+				transform.SetPosition({ map->GetWidth() - 1, pos.y, 0 });
+			}
+
+			if (dy::isEqual(pos.y, map->GetHeight()))
+			{
+				transform.SetPosition({ pos.x, 0, 0 });
+			}
+			else if (dy::isEqual(pos.y, -1))
+			{
+				transform.SetPosition({ pos.x, map->GetHeight() - 1, 0 });
+			}
+		}
+		
+
+		////set the direction to the next tile
+		if (ghostComponent.hasEnteredNewTile)
+		{
+			ghostComponent.hasEnteredNewTile = false;
+			UpdateGhostDirIdx(e);
+			UpdateGhostVelocity(e);
+			UpdateGhostEyeDir(e);
+		}		
 
 		if (true)
 		{
@@ -161,17 +205,7 @@ void GhostSystem::Update(float dt)
 			//recalculate path
 			UpdateDebugGhostPath();
 			UpdateDebugTargetPos();
-		}		
-
-		/*if (e != ghosts[BLINKY])
-		{
-			continue;
-		}*/
-
-		////set the direction to the next tile
-		UpdateGhostDirIdx(e);
-		UpdateGhostVelocity(e);
-		UpdateGhostEyeDir(e);
+		}
 	}
 
 	accumulatedTime += dt;
@@ -248,7 +282,7 @@ void GhostSystem::CreateGhost(GhostType type, glm::vec3 startPos, glm::vec2 scat
 
 	coordinator->AddComponent<GhostComponent>(newGhost, ghostComponent);
 	coordinator->AddComponent<TransformComponent>(newGhost, TransformComponent{ ghostComponent.startPos });
-	coordinator->AddComponent<TilePositionComponent>(newGhost, TilePositionComponent{ (int)startPos.x / 8, (int)startPos.y / 8 });
+	coordinator->AddComponent<TilePositionComponent>(newGhost, TilePositionComponent{ (int)(startPos.x - TILE_OFFSET), (int)(startPos.y - TILE_OFFSET)});
 	coordinator->AddComponent<MotionComponent>(newGhost, MotionComponent{});
 	coordinator->AddComponent<DebugPathComponent>(newGhost, DebugPathComponent{ (float)type });
 
@@ -291,11 +325,11 @@ void GhostSystem::UpdateTargetPos(Entity e)
 	auto& ghostComponent = coordinator->GetComponent<GhostComponent>(e);
 	auto& transform = coordinator->GetComponent<TransformComponent>(e);
 
-	if (ghostComponent.mode == GhostComponent::Mode::SCATTER)
+	/*if (ghostComponent.mode == GhostComponent::Mode::SCATTER)
 	{
 		ghostComponent.targetPos = ghostComponent.scatterPos;
 		return;
-	}
+	}*/
 
 	if (ghostComponent.mode == GhostComponent::Mode::FRIGHTENED)
 	{
@@ -453,7 +487,6 @@ glm::vec3 GhostSystem::GetDirectionVec(int dir)
 std::vector<int> GhostSystem::GetValidDirs(Entity ghost, glm::vec2 pos)
 {
 	std::vector<int> temp;
-	std::vector<int> result;
 
 	if (!dy::isInteger(pos.x) && !dy::isInteger(pos.y))
 	{
@@ -480,27 +513,12 @@ std::vector<int> GhostSystem::GetValidDirs(Entity ghost, glm::vec2 pos)
 	else if (dy::isInteger(pos.x) && dy::isInteger(pos.y))
 	{
 		//x and y are both integers
-		if (!map->IsWall(pos.x, pos.y - 1))
-		{
-			temp.emplace_back(GhostComponent::UP);
-		}
 
-		if (!map->IsWall(pos.x, pos.y + 1))
-		{
-			temp.emplace_back(GhostComponent::DOWN);
-		}
+		temp.emplace_back(GhostComponent::UP);
+		temp.emplace_back(GhostComponent::DOWN);
+		temp.emplace_back(GhostComponent::LEFT);
+		temp.emplace_back(GhostComponent::RIGHT);
 
-		if (!map->IsWall(pos.x - 1, pos.y))
-		{
-			temp.emplace_back(GhostComponent::LEFT);
-		}
-
-		if (!map->IsWall(pos.x + 1, pos.y))
-		{
-			temp.emplace_back(GhostComponent::RIGHT);
-		}
-
-		//the ghost cannot go backward
 	}
 	else if (!dy::isInteger(pos.y))
 	{
@@ -514,7 +532,8 @@ std::vector<int> GhostSystem::GetValidDirs(Entity ghost, glm::vec2 pos)
 			temp.emplace_back(ghostComponent.dirIdx);
 		}
 		
-	}else if (!dy::isInteger(pos.x))
+	}
+	else if (!dy::isInteger(pos.x))
 	{
 		if (ghostComponent.dirIdx == GhostComponent::NONE)
 		{
@@ -527,8 +546,40 @@ std::vector<int> GhostSystem::GetValidDirs(Entity ghost, glm::vec2 pos)
 		}
 	}
 	
+	std::vector<int> result;
+
 	for (auto e : temp)
 	{
+		switch (e)
+		{
+		case::GhostComponent::UP:
+			if (ghostComponent.dirIdx == GhostComponent::DOWN)
+			{
+				continue;
+			}
+			break;
+		case::GhostComponent::DOWN:
+			if (ghostComponent.dirIdx == GhostComponent::UP)
+			{
+				continue;
+			}
+			break;
+		case::GhostComponent::LEFT:
+			if (ghostComponent.dirIdx == GhostComponent::RIGHT)
+			{
+				continue;
+			}
+			break;
+		case::GhostComponent::RIGHT:
+			if (ghostComponent.dirIdx == GhostComponent::LEFT)
+			{
+				continue;
+			}
+			break;
+		default:
+			break;
+		}
+
 		if (!dy::isInteger(pos.x) || !dy::isInteger(pos.y))
 		{
 			result.emplace_back(e);
@@ -538,7 +589,7 @@ std::vector<int> GhostSystem::GetValidDirs(Entity ghost, glm::vec2 pos)
 		switch (e)
 		{
 		case::GhostComponent::UP:
-			if (ghostComponent.dirIdx != GhostComponent::DOWN && !map->IsWall(pos.x, pos.y-1))
+			if (ghostComponent.dirIdx != GhostComponent::DOWN && !map->IsWall(pos.x, pos.y - 1))
 			{
 				result.emplace_back(e);
 			}
@@ -550,7 +601,7 @@ std::vector<int> GhostSystem::GetValidDirs(Entity ghost, glm::vec2 pos)
 			}
 			break;
 		case::GhostComponent::LEFT:
-			if (ghostComponent.dirIdx != GhostComponent::RIGHT && !map->IsWall(pos.x-1, pos.y))
+			if (ghostComponent.dirIdx != GhostComponent::RIGHT && !map->IsWall(pos.x - 1, pos.y))
 			{
 				result.emplace_back(e);
 			}
@@ -578,6 +629,7 @@ void GhostSystem::UpdateGhostVelocity(Entity ghost)
 {
 	auto currentDirIdx = coordinator->GetComponent<GhostComponent>(ghost).dirIdx;
 	auto& motion = coordinator->GetComponent<MotionComponent>(ghost);
+
 	motion.SetVelocity(
 		GetDirectionVec(currentDirIdx) * ghostSpeed
 	);

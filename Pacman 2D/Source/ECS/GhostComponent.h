@@ -48,6 +48,7 @@ public:
 	glm::vec2 targetPos = { 0,0 };
 	glm::vec2 scatterPos = { 0,0 };
 	int dirIdx = NONE;
+	bool hasEnteredNewTile = true;
 
 	GhostComponent();
 };

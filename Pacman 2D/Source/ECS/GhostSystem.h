@@ -92,7 +92,7 @@ private:
 
 	std::shared_ptr<SharedData> sharedData;
 
-	const glm::vec3 ghostSpeed = glm::vec3(7.2f, 7.2f, 7.2f);
+	const glm::vec3 ghostSpeed = glm::vec3(9.2f, 9.2f, 9.2f);
 
 	inline static const float VERTICE[] =
 	{
