@@ -24,9 +24,9 @@ int ranInt(int min, int max)
 
 GhostComponent::GhostComponent()
 {
-	/*auto size = randomPathData.size();
+	auto size = randomPathData.size();
 	for (int i = 0; i < size; i++)
 	{
 		path.push_back(randomPathData[ranInt(0, size - 1)]);
-	}*/
+	}
 }

@@ -1,4 +1,6 @@
 #include "AStar.h"
+#include "dy/Log.h"
+#include <bitset>
 
 //referenced from https://en.wikipedia.org/wiki/A*_search_algorithm
 
@@ -16,19 +18,36 @@ dy::AStar::~AStar()
 {
 }
 
-std::vector<glm::ivec2> dy::AStar::FindPath(const glm::ivec2& start, const glm::ivec2& end, dy::AStar::Direction initialDir)
+std::unordered_map<glm::ivec2, glm::ivec2> cameFrom;
+std::unordered_map<glm::ivec2, float> gScore;
+std::unordered_map<glm::ivec2, float> fScore;
+dy::Comparator comparator = dy::Comparator{ &fScore };
+std::priority_queue<glm::ivec2, std::vector<glm::ivec2>, decltype(comparator)> openSet(comparator);
+std::bitset<2000> isPopped{ 0 };
+std::bitset<2000> isVisited{ 0 };
+
+std::vector<glm::ivec2> dy::AStar::FindPath(const glm::ivec2& start, const glm::ivec2& end, int initialDir)
 {
-	std::unordered_map<glm::ivec2, glm::ivec2> cameFrom;
-	std::unordered_map<glm::ivec2, float> gScore;
-	std::unordered_map<glm::ivec2, float> fScore;
-	Comparator comparator = Comparator{ &fScore };
-	std::priority_queue<glm::ivec2, std::vector<glm::ivec2>, decltype(comparator)> openSet(comparator);
+	cameFrom.clear();
+    gScore.clear();
+    
+	while(!openSet.empty())
+	{
+		openSet.pop();
+	}
+
+	//fScore must be cleared after openSet is cleared
+	fScore.clear();
+	isPopped.reset();
+	isVisited.reset();
 
 	this->currentDir = initialDir;
 
 	gScore[start] = 0.0f;
 	fScore[start] = Heuristic(start, end);
 	openSet.push(start);
+
+	int w = map->GetWidth();
 
 	while (!openSet.empty())
 	{
@@ -46,17 +65,44 @@ std::vector<glm::ivec2> dy::AStar::FindPath(const glm::ivec2& start, const glm::
 		}
 
 		openSet.pop();
+		isPopped[current.x*w + current.y] = 1;
 
-		for (auto& neighbour : GetNeighbours(current))
+		auto neighbours = GetNeighbours(current);
+
+		for (auto& neighbour : neighbours)
 		{
 			float tentativeGScore = gScore[current] + Heuristic(current, neighbour);
-			if (tentativeGScore < gScore[neighbour])
+			//auto test = gScore.find(neighbour)->second;
+			//use gScore[neighbour] will create a new element if it does not exist, so be careful, use contains() instead
+			//so yeah this code is pretty weird :))
+			//if (!gScore.contains(neighbour))
+			//{
+			//	cameFrom[neighbour] = current;
+			//	gScore[neighbour] = tentativeGScore;
+			//	fScore[neighbour] = gScore[neighbour] + Heuristic(neighbour, end);
+
+			//	//according to Wiki we should only add the neighbour to the open set if it is not in the open set
+			//	//but I cannot find a way to check if the element is in std::priority_queue or not, it sucks ...
+			//	if (isPopped[neighbour.x * w + neighbour.y] == 0)
+			//	{
+			//		openSet.push(neighbour);
+			//		isPopped[neighbour.x * w + neighbour.y] = 0;
+			//		count++;
+			//	}				
+			//}
+			//else 
+			if (tentativeGScore < gScore[neighbour] || !isVisited[neighbour.x * w + neighbour.y])
 			{
 				cameFrom[neighbour] = current;
 				gScore[neighbour] = tentativeGScore;
+				isVisited[neighbour.x * w + neighbour.y] = 1;
 				fScore[neighbour] = gScore[neighbour] + Heuristic(neighbour, end);
 
-				openSet.push(neighbour);
+				if (isPopped[neighbour.x * w + neighbour.y] == 0)
+				{
+					openSet.push(neighbour);
+					isPopped[neighbour.x * w + neighbour.y] = 0;
+				}
 			}
 		}
 	}
@@ -66,20 +112,80 @@ std::vector<glm::ivec2> dy::AStar::FindPath(const glm::ivec2& start, const glm::
 
 std::vector<glm::ivec2> dy::AStar::GetNeighbours(const glm::ivec2& pos)
 {
-	return std::vector<glm::ivec2>();
+	std::vector<glm::ivec2> result;
+
+	for (int i = 0; i < sizeof(DIRECTIONS) / sizeof(DIRECTIONS[0]); i++)
+	{
+		//the ghost cannot go back, so yeah ... not really A* algorithm
+		/*if (i == DOWN && currentDir == DOWN)
+		{
+			continue;
+		}
+		else if (i == UP && currentDir == UP)
+		{
+			continue;
+		}
+		else if (i == RIGHT && currentDir == RIGHT)
+		{
+			continue;
+		}
+		else if (i == LEFT && currentDir == LEFT)
+		{
+			continue;
+		}*/
+
+		auto next = pos + DIRECTIONS[i];
+
+		if (next.x < 0)
+		{
+			continue;
+		}
+		else if (next.x >= map->GetWidth())
+		{
+			continue;
+		}
+
+		if (next.y < 0)
+		{
+			continue;
+		}
+		else if (next.y >= map->GetHeight())
+		{
+			continue;
+		}
+
+
+		//#todo: the ghosts cannot go up in some specific tiles
+
+		if (map->IsWall(next.x, next.y))
+		{
+			continue;
+		}
+
+		//if the next position is not a wall, we can add the next position
+		result.push_back(next);
+	}
+
+	return result;
 }
 
 std::vector<glm::ivec2> dy::AStar::ReconstructPath(const std::vector<glm::ivec2>& list)
 {
-	return std::vector<glm::ivec2>();
+	//reverse the list
+	std::vector<glm::ivec2> result;
+	for (int i = list.size() - 1; i >= 0; i--)
+	{
+		result.push_back(list[i]);
+	}
+	return result;
 }
 
-float dy::AStar::Heuristic(const glm::ivec2& a, const glm::ivec2& b)
+float dy::AStar::Heuristic(const glm::vec2& a, const glm::vec2& b)
 {
-	return 0.0f;
+	return glm::distance(a, b);
 }
 
 std::shared_ptr<Map> dy::AStar::GetMap() const
 {
-	return std::shared_ptr<Map>();
+	return this->map;
 }

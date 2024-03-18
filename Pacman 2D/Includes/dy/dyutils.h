@@ -13,7 +13,7 @@ namespace dy
 
 	bool static inline isInteger(float a)
 	{
-		return fabs(a - (int)a)<0.01f;
+		return fabs(a - (int)a)<0.1f;
 	}
 }
 

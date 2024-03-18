@@ -43,7 +43,7 @@ private:
 
 	std::shared_ptr<Map> map;
 
-	const glm::vec3 playerSpeed = glm::vec3(6.9, 6.9, 6.9);
+	const glm::vec3 playerSpeed = glm::vec3(10, 10, 10);
 
 	inline static const float VERTICES[] =
 	{

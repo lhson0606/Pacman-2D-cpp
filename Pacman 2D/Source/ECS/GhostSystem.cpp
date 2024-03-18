@@ -99,10 +99,6 @@ void GhostSystem::Init(std::shared_ptr<Map> map)
 	glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(5 * sizeof(float)));
 
 	glBindVertexArray(0);
-
-	//testing
-	dy::AStar astar{ map };
-	auto path = astar.FindPath({ 1, 1 }, { 10, 10 }, dy::AStar::RIGHT);
 }
 
 void GhostSystem::LoadProjectMat(std::shared_ptr<Shader> shader, glm::mat4 proj)
@@ -140,6 +136,9 @@ void GhostSystem::Update(float dt)
 	float t = 0.5f * (1 + sin(accumulatedTime * 20));
 	int temp = (t > 0.5f) ? 1 : 0;
 
+	//testing
+	dy::AStar astar{ map };
+
 	for (auto e : entities)
 	{
 		auto& ghostComponent = coordinator->GetComponent<GhostComponent>(e);
@@ -147,10 +146,19 @@ void GhostSystem::Update(float dt)
 
 		auto& transform = coordinator->GetComponent<TransformComponent>(e);
 
+		auto& motion = coordinator->GetComponent<MotionComponent>(e);
+
 		UpdateTargetPos(e);
+
+		ghostComponent.path = astar.FindPath(
+			{ transform.GetPosition().x, transform.GetPosition().y },
+			{ ghostComponent.targetPos.x, ghostComponent.targetPos.y },
+			ghostComponent.dir
+		);
 
 		if (ghostComponent.path.size() == 0)
 		{
+			motion.SetVelocity({0,0,0});
 			continue;
 		}
 
@@ -174,18 +182,18 @@ void GhostSystem::Update(float dt)
 			continue;
 		}
 
-		//set the direction to the next tile
-		glm::vec3 dir = glm::normalize(glm::vec3(targetTile.x, targetTile.y, 0) - transform.GetPosition());
-		//our normalizer can return nan!?
+		////set the direction to the next tile
+		//glm::vec3 dir = glm::normalize(glm::vec3(targetTile.x, targetTile.y, 0) - transform.GetPosition());
+		////our normalizer can return nan!?
 
-		if (isnan(dir.x) || isnan(dir.y) || isnan(dir.z))
-		{
-			DyLogger::LogArg(DyLogger::LOG_ERROR, "Ghost direction is nan!");
-		}
+		//if (isnan(dir.x) || isnan(dir.y) || isnan(dir.z))
+		//{
+		//	dir = glm::vec3(0);
+		//	DyLogger::LogArg(DyLogger::LOG_ERROR, "Ghost direction is nan!");
+		//}
 
-		auto& motion = coordinator->GetComponent<MotionComponent>(e);
-		motion.SetVelocity(dir * ghostSpeed);
-		UpdateGhostEyeDir(e, dir);
+		//motion.SetVelocity(dir * ghostSpeed);
+		//UpdateGhostEyeDir(e, dir);
 	}
 
 	accumulatedTime += dt;
@@ -438,14 +446,14 @@ void GhostSystem::UpdateDebugGhostPath()
 
 		debugPathComponent.ClearPath();
 
-		/*if (ghostComponent.path.size() == 0)
+		if (ghostComponent.path.size() == 0)
 		{
 			continue;
-		}*/
+		}
 
 		std::vector<crushedpixel::Vec2> points;
 
-		points.push_back(crushedpixel::Vec2(transformComponent.GetPosition().x, transformComponent.GetPosition().y));
+		//points.push_back(crushedpixel::Vec2(transformComponent.GetPosition().x, transformComponent.GetPosition().y));
 		//#todo: this is for testing, remove this in the future
 
 		for (const auto& v : ghostComponent.path)
@@ -453,7 +461,7 @@ void GhostSystem::UpdateDebugGhostPath()
 			points.push_back(crushedpixel::Vec2(v.x, v.y));
 		}
 
-		points.push_back({ ghostComponent.targetPos.x, ghostComponent.targetPos.y });
+		//points.push_back({ ghostComponent.targetPos.x, ghostComponent.targetPos.y });
 
 		points = removeConsecutiveDuplicates(points);
 
@@ -481,18 +489,22 @@ void GhostSystem::UpdateGhostEyeDir(Entity ghost, const glm::vec3 dir)
 		if (max == dpUp)
 		{
 			ghostComponent.part[1] = 0;
+			ghostComponent.dir = dy::AStar::AStar::UP;
 		}
 		else if (max == dpDown)
 		{
 			ghostComponent.part[1] = 2;
+			ghostComponent.dir = dy::AStar::AStar::DOWN;
 		}
 		else if (max == dpLeft)
 		{
 			ghostComponent.part[1] = 3;
+			ghostComponent.dir = dy::AStar::AStar::LEFT;
 		}
 		else if (max == dpRight)
 		{
 			ghostComponent.part[1] = 1;
+			ghostComponent.dir = dy::AStar::AStar::RIGHT;
 		}
 	}
 }

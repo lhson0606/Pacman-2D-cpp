@@ -38,6 +38,7 @@ public:
 	int type = -1;
 	glm::vec2 targetPos = { 0,0 };
 	glm::vec2 scatterPos = { 0,0 };
+	int dir = 0;
 
 	GhostComponent();
 };

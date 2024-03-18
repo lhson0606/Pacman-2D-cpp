@@ -64,7 +64,7 @@ int App::Run()
 		glfwPollEvents();
 		startTime = endTime;
 		endTime = std::chrono::high_resolution_clock::now();
-		dt = min(std::chrono::duration<float>(endTime - startTime).count(), 0.0005f);
+		dt = max(std::chrono::duration<float>(endTime - startTime).count(), 0.0005f);
 	}
 
 	OnClose();

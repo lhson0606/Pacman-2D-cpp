@@ -6,6 +6,7 @@
 #include <vector>
 #include "Map/Map.h"
 #include <memory>
+#include <bitset>
 
 #define GLM_ENABLE_EXPERIMENTAL
 
@@ -55,10 +56,12 @@ namespace dy
 
 		bool operator()(const glm::ivec2& a, const glm::ivec2& b)
 		{
+#ifdef DEBUG
 			if (fScore->find(a) == fScore->end() || fScore->find(b) == fScore->end())
 			{
 				throw std::runtime_error("priority is not found");
 			}
+#endif // DEBUG			
 
 			return fScore->find(a)->second > fScore->find(b)->second;
 		}
@@ -77,20 +80,28 @@ namespace dy
 			RIGHT
 		};
 
+		inline static const glm::ivec2 DIRECTIONS[] = {
+			{0, -1}, //UP
+			{0, 1}, //DOWN
+			{-1, 0}, //LEFT
+			{1, 0} //RIGHT
+		};
+
 		AStar(std::shared_ptr<Map> map);
 		~AStar();
 
-		std::vector<glm::ivec2> FindPath(const glm::ivec2& start, const glm::ivec2& end, Direction initialDir);
+		std::vector<glm::ivec2> FindPath(const glm::ivec2& start, const glm::ivec2& end, int initialDir);
 
 		std::vector<glm::ivec2> GetNeighbours(const glm::ivec2& pos);
 
 		std::vector<glm::ivec2> ReconstructPath(const std::vector<glm::ivec2>& list);
 
-		float Heuristic(const glm::ivec2& a, const glm::ivec2& b);
+		float Heuristic(const glm::vec2& a, const glm::vec2& b);
 
 		std::shared_ptr<Map> GetMap() const;
+
 	private:
 		std::shared_ptr<Map> map;
-		Direction currentDir = UP;
+		int currentDir = UP;
 	};
 }
