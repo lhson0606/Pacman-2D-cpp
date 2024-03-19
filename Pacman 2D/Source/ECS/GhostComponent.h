@@ -58,8 +58,6 @@ public:
 	std::vector<glm::ivec2> path;
 	//ghost id to update in OpenglGL vertex buffer
 	int type = -1;
-	//position that the ghost need to reach
-	std::vector<glm::vec2> targetPos;
 	//the current position that the ghost is aiming to reach in SCATTER mode
 	glm::vec2 scatterPos = { 0,0 };
 	//current ghost direction idx so that we can check if the ghost is going to change direction and update its velocity
@@ -69,4 +67,15 @@ public:
 	glm::vec3 respawnPos = { 0,0,0 };
 
 	GhostComponent();
+
+	std::vector<glm::vec2> GetTargetPos() const;
+	void ClearTargetPos();
+	void PushbackTargetPos(const glm::vec2& pos);
+	void EraseFirstTargetPos();
+	glm::vec2 GetFirstTargetPos();
+	bool IsTargetPosEmpty() const;
+
+private:
+	//position that the ghost need to reach
+	std::vector<glm::vec2> targetPos;
 };

@@ -21,6 +21,8 @@ public:
 	bool* GetBtnFrightenedPtr();
 	bool IsBtnDeadClicked() const;
 	bool* GetBtnDeadPtr();
+	bool IsTriggerGoingOut() const;
+	bool* GetTriggerGoingOutPtr();
 	~SharedData();
 private:
 	glm::vec2 pacmanPos = glm::vec2(-1);
@@ -30,4 +32,5 @@ private:
 	bool btnFrightenedClicked = false;
 	bool btnDeadClicked = false;
 	bool enablePathDebug = true;
+	bool triggerGoingOut = false;
 };

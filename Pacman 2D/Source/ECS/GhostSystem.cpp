@@ -143,10 +143,10 @@ void GhostSystem::Update(float dt)
 
 	for (auto e : entities)
 	{
-		if (ghosts[BLINKY] != e)
+		/*if (ghosts[BLINKY] != e)
 		{
 			continue;
-		}
+		}*/
 
 		auto& ghostComponent = coordinator->GetComponent<GhostComponent>(e);
 		auto& transform = coordinator->GetComponent<TransformComponent>(e);
@@ -186,16 +186,15 @@ void GhostSystem::Update(float dt)
 
 		while (true)
 		{
-			if (ghostComponent.targetPos.empty())
+			if (ghostComponent.IsTargetPosEmpty())
 			{
 				break;
 			}
-
-			auto curTarget = ghostComponent.targetPos.front();
+			auto curTarget = ghostComponent.GetFirstTargetPos();
 
 			if (dy::isEqual(pos.x, curTarget.x) && dy::isEqual(pos.y, curTarget.y))
 			{
-				ghostComponent.targetPos.erase(ghostComponent.targetPos.begin());
+				ghostComponent.EraseFirstTargetPos();
 			}
 			else
 			{
@@ -211,11 +210,11 @@ void GhostSystem::Update(float dt)
 		UpdateGhostLook(e);
 
 		//for debug purpose, we can see the path that the ghost is going to take using AStart, but not always the case
-		if (sharedData->IsPathDebugEnabled() && !ghostComponent.targetPos.empty())
+		if (sharedData->IsPathDebugEnabled() && !ghostComponent.IsTargetPosEmpty())
 		{
 			ghostComponent.path = astar.FindPath(
 				{ transform.GetPosition().x, transform.GetPosition().y },
-				{ ghostComponent.targetPos.front().x, ghostComponent.targetPos.front().y},
+				{ ghostComponent.GetFirstTargetPos().x, ghostComponent.GetFirstTargetPos().y},
 				ghostComponent.dirIdx
 			);
 
@@ -248,6 +247,8 @@ void GhostSystem::UpdateGhostStateAndMode(Entity ghost)
 	{
 		if (dy::isEqual(pos.x, ghostHouseOutsidePos.x) && dy::isEqual(pos.y, ghostHouseOutsidePos.y))
 		{
+			ghostComponent.hasEnteredNewTile = true;
+			ghostComponent.ClearTargetPos();
 			ghostComponent.state = GhostComponent::State::GOING_IN;
 		}
 	}
@@ -257,6 +258,8 @@ void GhostSystem::UpdateGhostStateAndMode(Entity ghost)
 		auto respawnPos = ghostComponent.respawnPos;
 		if (dy::isEqual(pos.x, respawnPos.x) && dy::isEqual(pos.y, respawnPos.y))
 		{
+			ghostComponent.hasEnteredNewTile = true;
+			ghostComponent.ClearTargetPos();
 			ghostComponent.state = GhostComponent::State::GOING_OUT;
 		}	
 	}
@@ -266,6 +269,8 @@ void GhostSystem::UpdateGhostStateAndMode(Entity ghost)
 		
 		if (dy::isEqual(pos.x, ghostHouseOutsidePos.x) && dy::isEqual(pos.y, ghostHouseOutsidePos.y))
 		{
+			ghostComponent.hasEnteredNewTile = true;
+			ghostComponent.ClearTargetPos();
 			ghostComponent.state = GhostComponent::State::ACTIVE;
 			ghostComponent.mode = GhostComponent::Mode::SCATTER;
 		}
@@ -318,8 +323,8 @@ void GhostSystem::CreateGhost(GhostType type, glm::vec3 startPos, glm::vec2 scat
 	ghostComponent.startPos = { startPos.x - TILE_OFFSET, startPos.y - TILE_OFFSET, 0 };
 	ghostComponent.type = type;
 	ghostComponent.scatterPos = scatterPos;
-	ghostComponent.targetPos.emplace_back(scatterPos);
-	ghostComponent.respawnPos = startPos;//except for blinky
+	ghostComponent.PushbackTargetPos(scatterPos);
+	ghostComponent.respawnPos = { startPos.x - TILE_OFFSET, startPos.y - TILE_OFFSET, 0 };//except for blinky
 
 	switch (type)
 	{
@@ -394,8 +399,13 @@ void GhostSystem::UpdateTargetPos(Entity e)
 {
 	auto& ghostComponent = coordinator->GetComponent<GhostComponent>(e);
 
+	if (ghostComponent.state == GhostComponent::State::ACTIVE && ghostComponent.mode == GhostComponent::Mode::CHASE)
+	{
+		ghostComponent.ClearTargetPos();
+	}
+
 	//the ghost already has a target position, we don't need to update it
-	if (!ghostComponent.targetPos.empty())
+	if (!ghostComponent.IsTargetPosEmpty())
 	{
 		//if the ghost already had a target position, we don't need to update it
 		return;
@@ -404,30 +414,30 @@ void GhostSystem::UpdateTargetPos(Entity e)
 	if (ghostComponent.state == GhostComponent::State::GOING_IN)
 	{
 		//inside house -> respawn position
-		ghostComponent.targetPos.clear();
-		ghostComponent.targetPos.emplace_back(ghostHouseInsidePos);
-		ghostComponent.targetPos.emplace_back(ghostComponent.respawnPos);
+		ghostComponent.ClearTargetPos();
+		ghostComponent.PushbackTargetPos(ghostHouseInsidePos);
+		ghostComponent.PushbackTargetPos(ghostComponent.respawnPos);
 		return;
 	}
 
 	if (ghostComponent.state == GhostComponent::State::GOING_OUT)
 	{
 		//inside house -> outside house
-		ghostComponent.targetPos.clear();
-		ghostComponent.targetPos.emplace_back(ghostHouseInsidePos);
-		ghostComponent.targetPos.emplace_back(ghostHouseOutsidePos);
+		ghostComponent.ClearTargetPos();
+		ghostComponent.PushbackTargetPos(ghostHouseInsidePos);
+		ghostComponent.PushbackTargetPos(ghostHouseOutsidePos);
 		return;
 	}
 
 	if (ghostComponent.state == GhostComponent::State::CAPTIVE)
 	{
-		ghostComponent.targetPos.clear();
+		ghostComponent.ClearTargetPos();
 		return;
 	}
 
 	if (ghostComponent.state == GhostComponent::State::DEAD)
 	{
-		ghostComponent.targetPos.emplace_back(ghostHouseOutsidePos);
+		ghostComponent.PushbackTargetPos(ghostHouseOutsidePos);
 		return;
 	}
 
@@ -439,13 +449,13 @@ void GhostSystem::UpdateTargetPos(Entity e)
 	//frightened mode has no target position
 	if (ghostComponent.mode == GhostComponent::Mode::FRIGHTENED)
 	{
-		ghostComponent.targetPos.clear();
+		ghostComponent.ClearTargetPos();
 		return;
 	}
 
 	if (ghostComponent.mode == GhostComponent::Mode::SCATTER)
 	{
-		ghostComponent.targetPos.emplace_back(ghostComponent.scatterPos);
+		ghostComponent.PushbackTargetPos(ghostComponent.scatterPos);
 		return;
 	}
 
@@ -453,23 +463,23 @@ void GhostSystem::UpdateTargetPos(Entity e)
 	{
 	case GhostSystem::BLINKY:
 		//Blinky always chase pacman
-		ghostComponent.targetPos.emplace_back(sharedData->GetPacmanPos());
+		ghostComponent.PushbackTargetPos(sharedData->GetPacmanPos());
 		break;
 	case GhostSystem::PINKY:
 		switch (sharedData->GetPacmanDir())
 		{
 		case PlayerComponent::UP:
 			//minus both x and y to simulate overflow
-			ghostComponent.targetPos.emplace_back(sharedData->GetPacmanPos() + glm::vec2(-4, -4));
+			ghostComponent.PushbackTargetPos(sharedData->GetPacmanPos() + glm::vec2(-4, -4));
 			break;
 		case PlayerComponent::DOWN:
-			ghostComponent.targetPos.emplace_back(sharedData->GetPacmanPos() + glm::vec2(0, +4));
+			ghostComponent.PushbackTargetPos(sharedData->GetPacmanPos() + glm::vec2(0, +4));
 			break;
 		case PlayerComponent::LEFT:
-			ghostComponent.targetPos.emplace_back(sharedData->GetPacmanPos() + glm::vec2(-4, 0));
+			ghostComponent.PushbackTargetPos(sharedData->GetPacmanPos() + glm::vec2(-4, 0));
 			break;
 		case::PlayerComponent::RIGHT:
-			ghostComponent.targetPos.emplace_back(sharedData->GetPacmanPos() + glm::vec2(+4, 0));
+			ghostComponent.PushbackTargetPos(sharedData->GetPacmanPos() + glm::vec2(+4, 0));
 			break;
 			break;
 		default:
@@ -481,14 +491,14 @@ void GhostSystem::UpdateTargetPos(Entity e)
 		auto pacmanPos = sharedData->GetPacmanPos();
 		auto blinkyPos = coordinator->GetComponent<TransformComponent>(ghosts[BLINKY]).GetPosition();
 		auto inkyTargetPos = pacmanPos + (pacmanPos - glm::vec2{ blinkyPos.x, blinkyPos.y });
-		ghostComponent.targetPos.emplace_back(inkyTargetPos);
+		ghostComponent.PushbackTargetPos(inkyTargetPos);
 		break;
 	case GhostSystem::CLYDE:
 	{
 		auto &transform = coordinator->GetComponent<TransformComponent>(e);
 		//if the distance between clyde and pacman is less than 8 tiles, clyde will target scatter position,
 		//otherwise it will target pacman
-		ghostComponent.targetPos.emplace_back(glm::distance(
+		ghostComponent.PushbackTargetPos(glm::distance(
 			transform.GetPosition(),
 			glm::vec3{ sharedData->GetPacmanPos().x, sharedData->GetPacmanPos().y, 0 }
 		)
@@ -504,7 +514,7 @@ void GhostSystem::UpdateTargetPos(Entity e)
 void GhostSystem::UpdateDebugTargetPos()
 {
 	//Blinky
-	auto& blinkyTargetPos = coordinator->GetComponent<GhostComponent>(ghosts[BLINKY]).targetPos;
+	auto blinkyTargetPos = coordinator->GetComponent<GhostComponent>(ghosts[BLINKY]).GetTargetPos();
 	if (!blinkyTargetPos.empty())
 	{
 		auto& blinkyDebug = coordinator->GetComponent<DebugPathComponent>(ghosts[BLINKY]);
@@ -512,7 +522,7 @@ void GhostSystem::UpdateDebugTargetPos()
 	}
 
 	//Pinky
-	auto& pinkyTargetPos = coordinator->GetComponent<GhostComponent>(ghosts[PINKY]).targetPos;
+	auto pinkyTargetPos = coordinator->GetComponent<GhostComponent>(ghosts[PINKY]).GetTargetPos();
 	if (!pinkyTargetPos.empty())
 	{
 		auto& pinkyDebug = coordinator->GetComponent<DebugPathComponent>(ghosts[PINKY]);
@@ -521,7 +531,7 @@ void GhostSystem::UpdateDebugTargetPos()
 	
 
 	//Inky
-	auto& inkyTargetPos = coordinator->GetComponent<GhostComponent>(ghosts[INKY]).targetPos;
+	auto inkyTargetPos = coordinator->GetComponent<GhostComponent>(ghosts[INKY]).GetTargetPos();
 	if (!inkyTargetPos.empty())
 	{
 		auto& inkyDebug = coordinator->GetComponent<DebugPathComponent>(ghosts[INKY]);
@@ -529,7 +539,7 @@ void GhostSystem::UpdateDebugTargetPos()
 	}
 
 	//Clyde
-	auto& clydeTargetPos = coordinator->GetComponent<GhostComponent>(ghosts[CLYDE]).targetPos;
+	auto clydeTargetPos = coordinator->GetComponent<GhostComponent>(ghosts[CLYDE]).GetTargetPos();
 	if(!clydeTargetPos.empty())
 	{ 
 		auto& clydeDebug = coordinator->GetComponent<DebugPathComponent>(ghosts[CLYDE]);
@@ -566,12 +576,12 @@ void GhostSystem::UpdateGhostDirIdx(Entity ghost)
 			auto firstDir = GetDirectionVec(possibleDirs[0]);
 			ghostComponent.dirIdx = possibleDirs[0];
 
-			if (ghostComponent.targetPos.empty())
+			if (ghostComponent.IsTargetPosEmpty())
 			{
 				DyLogger::LogArg(DyLogger::LOG_WARNING, "Ghost has no target position, id : %d", ghost);
 			}
 
-			auto curTarget = glm::vec3(ghostComponent.targetPos.front().x, ghostComponent.targetPos.front().y, 0);
+			auto curTarget = glm::vec3(ghostComponent.GetFirstTargetPos().x, ghostComponent.GetFirstTargetPos().y, 0);
 
 			float minDist = glm::distance(
 				coordinator->GetComponent<TransformComponent>(ghost).GetPosition() + firstDir,
@@ -709,7 +719,9 @@ std::vector<int> GhostSystem::GetValidDirs(Entity ghost, glm::vec2 pos)
 
 		if (!dy::isInteger(pos.x) && !dy::isInteger(pos.y))
 		{
-			throw std::runtime_error("This cannot be reached!");
+			//throw std::runtime_error("This cannot be reached!");
+			auto& trans = coordinator->GetComponent<TransformComponent>(ghost);
+			trans.SetPosition({ (int)pos.x, (int)pos.y, 0 });
 		}
 
 		if (dy::isInteger(pos.x))
@@ -805,7 +817,7 @@ std::vector<int> GhostSystem::GetValidDirs(Entity ghost, glm::vec2 pos)
 		result.emplace_back(GhostComponent::NONE_DIRECTION);
 	}
 
-	return result;	
+	return result;
 }
 
 void GhostSystem::UpdateGhostVelocity(Entity ghost)
@@ -828,25 +840,36 @@ void GhostSystem::HandleDebugInput()
 		{
 			ghostComponent.state = GhostComponent::State::ACTIVE;
 			ghostComponent.mode = GhostComponent::Mode::CHASE;
-			ghostComponent.targetPos.clear();
+			ghostComponent.ClearTargetPos();
+			ghostComponent.hasEnteredNewTile = true;
 		}
 		else if (sharedData->IsBtnScatterClicked())
 		{
 			ghostComponent.state = GhostComponent::State::ACTIVE;
 			ghostComponent.mode = GhostComponent::Mode::SCATTER;
-			ghostComponent.targetPos.clear();
+			ghostComponent.ClearTargetPos();
+			ghostComponent.hasEnteredNewTile = true;
 		}
 		else if (sharedData->IsBtnDeadClicked())
 		{
 			ghostComponent.state = GhostComponent::State::DEAD;
 			ghostComponent.mode = GhostComponent::Mode::NOT_ACTIVE;
-			ghostComponent.targetPos.clear();
+			ghostComponent.ClearTargetPos();
+			ghostComponent.hasEnteredNewTile = true;
 		}
 		else if (sharedData->IsBtnFrightenedClicked())
 		{
 			ghostComponent.state = GhostComponent::State::ACTIVE;
 			ghostComponent.mode = GhostComponent::Mode::FRIGHTENED;
-			ghostComponent.targetPos.clear();
+			ghostComponent.ClearTargetPos();
+			ghostComponent.hasEnteredNewTile = true;
+		}
+		else if (sharedData->IsTriggerGoingOut())
+		{
+			ghostComponent.state = GhostComponent::State::GOING_OUT;
+			ghostComponent.mode = GhostComponent::Mode::NOT_ACTIVE;
+			ghostComponent.ClearTargetPos();
+			ghostComponent.hasEnteredNewTile = true;
 		}
 	}
 }

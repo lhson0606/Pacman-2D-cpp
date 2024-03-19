@@ -192,6 +192,9 @@ void DebugSystem::DrawImgui()
 
 		*sharedData->GetBtnChasePtr() = false;
 		*sharedData->GetBtnScatterPtr() = false;
+		*sharedData->GetBtnFrightenedPtr() = false;
+		*sharedData->GetBtnDeadPtr() = false;
+		*sharedData->GetTriggerGoingOutPtr() = false;
 
 		if (ImGui::Button("Trigger chase mode"))
 		{
@@ -208,6 +211,10 @@ void DebugSystem::DrawImgui()
 		else if (ImGui::Button("Trigger dead mode"))
 		{
 			*sharedData->GetBtnDeadPtr() = true;
+		}
+		else if (ImGui::Button("Trigger going out"))
+		{
+			*sharedData->GetTriggerGoingOutPtr() = true;
 		}
 
 		ImGui::End();

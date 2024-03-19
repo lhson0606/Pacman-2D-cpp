@@ -79,6 +79,16 @@ bool* SharedData::GetBtnDeadPtr()
 	return &btnDeadClicked;
 }
 
+bool SharedData::IsTriggerGoingOut() const
+{
+	return triggerGoingOut;
+}
+
+bool* SharedData::GetTriggerGoingOutPtr()
+{
+	return &triggerGoingOut;
+}
+
 SharedData::~SharedData()
 {
 }

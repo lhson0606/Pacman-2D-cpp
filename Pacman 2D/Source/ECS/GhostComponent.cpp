@@ -21,3 +21,33 @@ GhostComponent::GhostComponent()
 		path.push_back(randomPathData[dy::ranInt(0, size - 1)]);
 	}*/
 }
+
+std::vector<glm::vec2> GhostComponent::GetTargetPos() const
+{
+	return targetPos;
+}
+
+void GhostComponent::ClearTargetPos()
+{
+	targetPos.clear();
+}
+
+void GhostComponent::PushbackTargetPos(const glm::vec2& pos)
+{
+	targetPos.push_back(pos);
+}
+
+void GhostComponent::EraseFirstTargetPos()
+{
+	targetPos.erase(targetPos.begin());
+}
+
+glm::vec2 GhostComponent::GetFirstTargetPos()
+{
+	return targetPos.at(0);
+}
+
+bool GhostComponent::IsTargetPosEmpty() const
+{
+	return targetPos.empty();
+}
