@@ -100,6 +100,8 @@ void GhostSystem::Init(std::shared_ptr<Map> map)
 	glBindVertexArray(0);
 
 	astar = dy::AStar(map);
+
+	accumulatedTime = 0;
 }
 
 void GhostSystem::LoadProjectMat(std::shared_ptr<Shader> shader, glm::mat4 proj)
@@ -126,6 +128,7 @@ void GhostSystem::LoadTexture(std::shared_ptr<Shader> shader, std::shared_ptr<Te
 void GhostSystem::LoadExtra(std::shared_ptr<Shader> shader)
 {
 	shader->Use();
+	//#todo: implement Sprite or SpriteSheet class so we won't need to hardcode these values
 	shader->SetFloat("texRowStride", 0.2f);
 	shader->SetFloat("texColStride", 0.5f);
 	shader->Stop();
@@ -133,7 +136,6 @@ void GhostSystem::LoadExtra(std::shared_ptr<Shader> shader)
 
 void GhostSystem::Update(float dt)
 {
-	static double accumulatedTime = 0;
 	float t = 0.5f * (1 + sin(accumulatedTime * 20));
 	int temp = (t > 0.5f) ? 1 : 0;
 
@@ -141,18 +143,13 @@ void GhostSystem::Update(float dt)
 
 	for (auto e : entities)
 	{
-		/*if (ghosts[BLINKY] != e)
-		{
-			continue;
-		}*/
-
 		auto& ghostComponent = coordinator->GetComponent<GhostComponent>(e);
 		ghostComponent.part[0] = temp;
 		auto& transform = coordinator->GetComponent<TransformComponent>(e);
 		auto& motion = coordinator->GetComponent<MotionComponent>(e);
 		auto pos = transform.GetPosition();
 
-		UpdateTargetPos(e);	
+		UpdateTargetPos(e);
 
 		auto& tilePosCom = coordinator->GetComponent<TilePositionComponent>(e);
 
@@ -183,7 +180,6 @@ void GhostSystem::Update(float dt)
 				transform.SetPosition({ pos.x, map->GetHeight() - 1, 0 });
 			}
 		}
-		
 
 		////set the direction to the next tile
 		if (ghostComponent.hasEnteredNewTile)
@@ -192,9 +188,9 @@ void GhostSystem::Update(float dt)
 			UpdateGhostDirIdx(e);
 			UpdateGhostVelocity(e);
 			UpdateGhostEyeDir(e);
-		}		
+		}
 
-		if (true)
+		if (sharedData->IsPathDebugEnabled())
 		{
 			ghostComponent.path = astar.FindPath(
 				{ transform.GetPosition().x, transform.GetPosition().y },
@@ -202,13 +198,15 @@ void GhostSystem::Update(float dt)
 				ghostComponent.dirIdx
 			);
 
-			//recalculate path
+			//recalculate debug path
 			UpdateDebugGhostPath();
 			UpdateDebugTargetPos();
 		}
 	}
 
 	accumulatedTime += dt;
+
+	HandleDebugInput();
 }
 
 void GhostSystem::Draw(std::shared_ptr<Shader> shader, std::shared_ptr<Texture> tex)
@@ -224,7 +222,8 @@ void GhostSystem::Draw(std::shared_ptr<Shader> shader, std::shared_ptr<Texture> 
 
 void GhostSystem::CleanUp()
 {
-	//make a copy of the entities
+	//make a copy of the entities, we cannot destroy entities while iterating through them
+	//we can use algorithm to do this, but nah :)
 	auto temp = this->entities;
 	for (auto entity : temp)
 	{
@@ -282,7 +281,7 @@ void GhostSystem::CreateGhost(GhostType type, glm::vec3 startPos, glm::vec2 scat
 
 	coordinator->AddComponent<GhostComponent>(newGhost, ghostComponent);
 	coordinator->AddComponent<TransformComponent>(newGhost, TransformComponent{ ghostComponent.startPos });
-	coordinator->AddComponent<TilePositionComponent>(newGhost, TilePositionComponent{ (int)(startPos.x - TILE_OFFSET), (int)(startPos.y - TILE_OFFSET)});
+	coordinator->AddComponent<TilePositionComponent>(newGhost, TilePositionComponent{ (int)(startPos.x - TILE_OFFSET), (int)(startPos.y - TILE_OFFSET) });
 	coordinator->AddComponent<MotionComponent>(newGhost, MotionComponent{});
 	coordinator->AddComponent<DebugPathComponent>(newGhost, DebugPathComponent{ (float)type });
 
@@ -325,11 +324,11 @@ void GhostSystem::UpdateTargetPos(Entity e)
 	auto& ghostComponent = coordinator->GetComponent<GhostComponent>(e);
 	auto& transform = coordinator->GetComponent<TransformComponent>(e);
 
-	/*if (ghostComponent.mode == GhostComponent::Mode::SCATTER)
+	if (ghostComponent.mode == GhostComponent::Mode::SCATTER)
 	{
 		ghostComponent.targetPos = ghostComponent.scatterPos;
 		return;
-	}*/
+	}
 
 	if (ghostComponent.mode == GhostComponent::Mode::FRIGHTENED)
 	{
@@ -365,7 +364,7 @@ void GhostSystem::UpdateTargetPos(Entity e)
 		}
 		break;
 	case GhostSystem::INKY:
-		//oposite of pacman direction to blinky
+		//opposite of pacman direction to blinky
 		auto pacmanPos = sharedData->GetPacmanPos();
 		auto blinkyPos = coordinator->GetComponent<TransformComponent>(ghosts[BLINKY]).GetPosition();
 		auto inkyTargetPos = pacmanPos + (pacmanPos - glm::vec2{ blinkyPos.x, blinkyPos.y });
@@ -413,7 +412,7 @@ void GhostSystem::UpdateGhostDirIdx(Entity ghost)
 {
 	std::vector<int> possibleDirs = GetValidDirs(ghost, coordinator->GetComponent<TransformComponent>(ghost).GetPosition());
 	auto& ghostComponent = coordinator->GetComponent<GhostComponent>(ghost);
-	
+
 	if (possibleDirs.size() == 1)
 	{
 		ghostComponent.dirIdx = possibleDirs[0];
@@ -423,9 +422,9 @@ void GhostSystem::UpdateGhostDirIdx(Entity ghost)
 	switch (ghostComponent.mode)
 	{
 	case GhostComponent::Mode::FRIGHTENED:
-			//pick a random direction
-			ghostComponent.dirIdx = possibleDirs[dy::ranInt(0, possibleDirs.size() - 1)];
-			break;
+		//pick a random direction
+		ghostComponent.dirIdx = possibleDirs[dy::ranInt(0, possibleDirs.size() - 1)];
+		break;
 	case GhostComponent::Mode::CHASE:
 	case GhostComponent::Mode::SCATTER:
 	{
@@ -454,7 +453,7 @@ void GhostSystem::UpdateGhostDirIdx(Entity ghost)
 		}
 
 		break;
-	}		
+	}
 	default:
 		break;
 	}
@@ -507,8 +506,7 @@ std::vector<int> GhostSystem::GetValidDirs(Entity ghost, glm::vec2 pos)
 		{
 			temp.emplace_back(GhostComponent::UP);
 			temp.emplace_back(GhostComponent::DOWN);
-		}	
-		
+		}
 	}
 	else if (dy::isInteger(pos.x) && dy::isInteger(pos.y))
 	{
@@ -518,7 +516,6 @@ std::vector<int> GhostSystem::GetValidDirs(Entity ghost, glm::vec2 pos)
 		temp.emplace_back(GhostComponent::DOWN);
 		temp.emplace_back(GhostComponent::LEFT);
 		temp.emplace_back(GhostComponent::RIGHT);
-
 	}
 	else if (!dy::isInteger(pos.y))
 	{
@@ -531,7 +528,6 @@ std::vector<int> GhostSystem::GetValidDirs(Entity ghost, glm::vec2 pos)
 		{
 			temp.emplace_back(ghostComponent.dirIdx);
 		}
-		
 	}
 	else if (!dy::isInteger(pos.x))
 	{
@@ -545,11 +541,12 @@ std::vector<int> GhostSystem::GetValidDirs(Entity ghost, glm::vec2 pos)
 			temp.emplace_back(ghostComponent.dirIdx);
 		}
 	}
-	
+
 	std::vector<int> result;
 
 	for (auto e : temp)
 	{
+		//check if the direction is the opposite of the current direction, if so skip it
 		switch (e)
 		{
 		case::GhostComponent::UP:
@@ -580,34 +577,36 @@ std::vector<int> GhostSystem::GetValidDirs(Entity ghost, glm::vec2 pos)
 			break;
 		}
 
+		//if the ghost is not in a cell of the grid, of course it can move
 		if (!dy::isInteger(pos.x) || !dy::isInteger(pos.y))
 		{
 			result.emplace_back(e);
 			continue;
 		}
 
+		//assumed that the remains directions not including the opposite direction
 		switch (e)
 		{
 		case::GhostComponent::UP:
-			if (ghostComponent.dirIdx != GhostComponent::DOWN && !map->IsWall(pos.x, pos.y - 1))
+			if (!map->IsWall(pos.x, pos.y - 1))
 			{
 				result.emplace_back(e);
 			}
 			break;
 		case::GhostComponent::DOWN:
-			if (ghostComponent.dirIdx != GhostComponent::UP && !map->IsWall(pos.x, pos.y + 1))
+			if (!map->IsWall(pos.x, pos.y + 1))
 			{
 				result.emplace_back(e);
 			}
 			break;
 		case::GhostComponent::LEFT:
-			if (ghostComponent.dirIdx != GhostComponent::RIGHT && !map->IsWall(pos.x - 1, pos.y))
+			if (!map->IsWall(pos.x - 1, pos.y))
 			{
 				result.emplace_back(e);
 			}
 			break;
 		case::GhostComponent::RIGHT:
-			if (ghostComponent.dirIdx != GhostComponent::LEFT && !map->IsWall(pos.x + 1, pos.y))
+			if (!map->IsWall(pos.x + 1, pos.y))
 			{
 				result.emplace_back(e);
 			}
@@ -619,7 +618,8 @@ std::vector<int> GhostSystem::GetValidDirs(Entity ghost, glm::vec2 pos)
 
 	if ((result.size() == 0))
 	{
-		throw std::exception("No valid direction");
+		DyLogger::LogArg(DyLogger::LOG_WARNING, "No valid direction for ghost has entity id %d", ghost);
+		result.emplace_back(GhostComponent::NONE);
 	}
 
 	return result;
@@ -635,9 +635,26 @@ void GhostSystem::UpdateGhostVelocity(Entity ghost)
 	);
 }
 
+void GhostSystem::HandleDebugInput()
+{
+	for (Entity e : entities)
+	{
+		auto& ghostComponent = coordinator->GetComponent<GhostComponent>(e);
+
+		if (sharedData->IsBtnChaseClicked())
+		{
+			ghostComponent.mode = GhostComponent::Mode::CHASE;
+		}
+		else if (sharedData->IsBtnScatterClicked())
+		{
+			ghostComponent.mode = GhostComponent::Mode::SCATTER;
+		}
+	}
+}
+
 GhostSystem::~GhostSystem()
 {
-	//assume that if our system is deleted, our program is closing, no need to call CleanUp
+	//assume that if our system is deleted, our program is closing, no cleanup needed
 }
 
 void GhostSystem::UpdateGhostUniforms(std::shared_ptr<Shader> shader)
@@ -687,18 +704,18 @@ void GhostSystem::UpdateDebugGhostPath()
 
 		std::vector<crushedpixel::Vec2> points;
 
-		//points.push_back(crushedpixel::Vec2(transformComponent.GetPosition().x, transformComponent.GetPosition().y));
-		//#todo: this is for testing, remove this in the future
+		points.push_back({ transformComponent.GetPosition().x, transformComponent.GetPosition().y });
 
 		for (const auto& v : ghostComponent.path)
 		{
 			points.push_back(crushedpixel::Vec2(v.x, v.y));
 		}
 
-		//points.push_back({ ghostComponent.targetPos.x, ghostComponent.targetPos.y });
+		//points.push_back({ transformComponent.GetPosition().x, transformComponent.GetPosition().y });
 
 		points = removeConsecutiveDuplicates(points);
 
+		//#todo: probably we should "optimize" the path by adding only joints
 		debugPathComponent.SetPath(points);
 	}
 }
@@ -713,22 +730,6 @@ void GhostSystem::UpdateGhostEyeDir(Entity ghost)
 	}
 	else
 	{
-		/*if (max == dpUp)
-		{
-			ghostComponent.part[1] = 0;
-		}
-		else if (max == dpDown)
-		{
-			ghostComponent.part[1] = 2;
-		}
-		else if (max == dpLeft)
-		{
-			ghostComponent.part[1] = 3;
-		}
-		else if (max == dpRight)
-		{
-			ghostComponent.part[1] = 1;
-		}*/
 		switch (ghostComponent.dirIdx)
 		{
 		case GhostComponent::UP:
@@ -746,7 +747,5 @@ void GhostSystem::UpdateGhostEyeDir(Entity ghost)
 		default:
 			break;
 		}
-
-		
 	}
 }

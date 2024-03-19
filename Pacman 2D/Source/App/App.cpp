@@ -65,10 +65,29 @@ int App::Run()
 		startTime = endTime;
 		endTime = std::chrono::high_resolution_clock::now();
 		dt = std::chrono::duration<float>(endTime - startTime).count();
+
+		static bool warnOnce = false;
+
+		if (dt > 0.01f)
+		{
+			if (!warnOnce)
+			{
+				DyLogger::LogArg(DyLogger::LOG_WARNING, "The program is running extremely slow frame time: %f", dt);
+				warnOnce = true;
+			}
+
+			dt = 0.01f;
+		}
+		else
+		{
+			warnOnce = false;
+		}
 	}
 
 	OnClose();
 
+	glfwDestroyWindow(window);
+	glfwTerminate();
 	return 0;
 }
 
@@ -120,7 +139,7 @@ int App::Init()
 	glfwMakeContextCurrent(window);
 
 	//before using any render function we need to call this once to retrieve all functions pointer
-	//our program will result in error if it does't call this
+	//our program will result in error if it doesn't call this
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
@@ -201,6 +220,8 @@ void App::InitSystems()
 	shaderManager->HardLoadShaders();
 	//load textures
 	textureManager->HardLoadTextures();
+
+	debugSystem->SetUpImgui(window);
 }
 
 void App::OnCreate()
@@ -221,7 +242,7 @@ void App::OnCreate()
 	ghostSystem->LoadExtra(shaderManager->GetShader(ShaderManager::ShaderType::GHOST));
 
 	//init debug system
-	debugSystem->Init();
+	debugSystem->Init(this->sharedData);
 	debugSystem->LoadProjectMat(
 		shaderManager->GetShader(ShaderManager::ShaderType::DEBUG_PATH), 
 		shaderManager->GetShader(ShaderManager::ShaderType::TARGET_TILE),
@@ -281,6 +302,8 @@ void App::Draw()
 		shaderManager->GetShader(ShaderManager::ShaderType::GHOST),
 		textureManager->GetTexture(TextureManager::TextureType::GHOST)
 	);
+
+	debugSystem->DrawImgui();
 }
 
 void App::Update(float dt)
@@ -292,6 +315,7 @@ void App::Update(float dt)
 
 void App::OnClose()
 {
+	debugSystem->CleanUp();
 }
 
 void App::Stop()

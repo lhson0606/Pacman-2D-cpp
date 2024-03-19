@@ -71,19 +71,19 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(ProjectDir)Source;$(ProjectDir)Includes;$(ProjectDir)Vendors\Includes;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Source;$(ProjectDir)Includes\imgui;$(ProjectDir)Includes;$(ProjectDir)Vendors\Includes;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)Vendors\Libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(ProjectDir)Source;$(ProjectDir)Includes;$(ProjectDir)Vendors\Includes;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Source;$(ProjectDir)Includes\imgui;$(ProjectDir)Includes;$(ProjectDir)Vendors\Includes;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)Vendors\Libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir)Source;$(ProjectDir)Includes;$(ProjectDir)Vendors\Includes;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Source;$(ProjectDir)Includes\imgui;$(ProjectDir)Includes;$(ProjectDir)Vendors\Includes;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)Vendors\Libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(ProjectDir)Source;$(ProjectDir)Includes;$(ProjectDir)Vendors\Includes;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Source;$(ProjectDir)Includes\imgui;$(ProjectDir)Includes;$(ProjectDir)Vendors\Includes;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)Vendors\Libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -151,6 +151,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Includes\imgui\imgui.cpp" />
+    <ClCompile Include="Includes\imgui\imgui_demo.cpp" />
+    <ClCompile Include="Includes\imgui\imgui_draw.cpp" />
+    <ClCompile Include="Includes\imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="Includes\imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="Includes\imgui\imgui_stdlib.cpp" />
+    <ClCompile Include="Includes\imgui\imgui_tables.cpp" />
+    <ClCompile Include="Includes\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Source\Algorithm\AStar.cpp" />
     <ClCompile Include="Source\ECS\PlayerComponent.cpp" />
     <ClCompile Include="Source\ECS\KeyboardComponent.cpp" />
@@ -184,6 +192,17 @@
     <ClCompile Include="Vendors\stb_define.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Includes\dy\dy_imgui.h" />
+    <ClInclude Include="Includes\imgui\imconfig.h" />
+    <ClInclude Include="Includes\imgui\imgui.h" />
+    <ClInclude Include="Includes\imgui\imgui_impl_glfw.h" />
+    <ClInclude Include="Includes\imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="Includes\imgui\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="Includes\imgui\imgui_internal.h" />
+    <ClInclude Include="Includes\imgui\imgui_stdlib.h" />
+    <ClInclude Include="Includes\imgui\imstb_rectpack.h" />
+    <ClInclude Include="Includes\imgui\imstb_textedit.h" />
+    <ClInclude Include="Includes\imgui\imstb_truetype.h" />
     <ClInclude Include="Source\Algorithm\AStar.h" />
     <ClInclude Include="Source\ECS\PlayerComponent.h" />
     <ClInclude Include="Source\ECS\KeyboardComponent.h" />
@@ -592,6 +611,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="assimp-vc143-mtd.dll" />
+    <None Include="Includes\imgui\imgui.gdb" />
+    <None Include="Includes\imgui\imgui.natstepfilter" />
     <None Include="Resources\GLSL\ghost.frag" />
     <None Include="Resources\GLSL\ghost.vert" />
     <None Include="Resources\GLSL\map.frag" />
@@ -767,6 +788,13 @@
     <Image Include="Resources\Textures\target_tile.png" />
     <Image Include="Resources\Textures\Tunnel.png" />
     <Image Include="Resources\Textures\UpBanned.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="Includes\imgui\imgui.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Includes\imgui\LICENSE.txt" />
+    <Text Include="Includes\imgui\README.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

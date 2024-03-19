@@ -4,14 +4,20 @@
 #include <memory>
 #include "glm/vec3.hpp"
 #include "Render/Texture.h"
+#include <glad/glad.h>
+#include "GLFW/glfw3.h"
+#include "dy/dy_imgui.h"
+#include "ECS/SharedData.h"
 
 class DebugSystem : public System
 {
 public:
 	DebugSystem() = default;
-	void Init();
+	void Init(std::shared_ptr<SharedData> appState);
+	void SetUpImgui(GLFWwindow* window);
 	void AddTestingPath();
 	void Draw(std::shared_ptr<Shader> pathShader, std::shared_ptr<Shader> targetTileShader, std::shared_ptr<Texture> tex);
+	void DrawImgui();
 	void SetCoordinator(std::shared_ptr<Coordinator> coordinator);
 	void Prepare();
 	void PrepareTargetTile(std::shared_ptr<Shader> shader);
@@ -19,6 +25,7 @@ public:
 	void LoadProjectMat(std::shared_ptr<Shader> pathShader, std::shared_ptr<Shader> targetTileShader, glm::mat4 proj);
 	void LoadViewMat(std::shared_ptr<Shader> pathShader, std::shared_ptr<Shader> targetTileShader, glm::mat4 view);
 	void LoadColors(std::shared_ptr<Shader> pathShader, std::shared_ptr<Shader> targetTileShader, glm::vec3 color0, glm::vec3 color1, glm::vec3 color2, glm::vec3 color3);
+	void CleanUp();
 	~DebugSystem();
 
 private:
@@ -35,6 +42,12 @@ private:
 
 	int vertexCount = 0;
 	bool shouldDraw = false;
+
+	ImGuiIO* io = nullptr;
+
+	GLFWwindow* window = nullptr;
+
+	std::shared_ptr<SharedData> sharedData;
 
 	inline static const float VERTICES[] =
 	{

@@ -67,6 +67,8 @@ public:
 
 	void UpdateGhostVelocity(Entity ghost);
 
+	void HandleDebugInput();
+
 	~GhostSystem();
 
 private:
@@ -94,10 +96,12 @@ private:
 
 	const glm::vec3 ghostSpeed = glm::vec3(9.2f, 9.2f, 9.2f);
 
+	double accumulatedTime = 0;
+
 	inline static const float VERTICE[] =
 	{
 		//=====01=====
-		//positions				//texture coords		//ghost id			//part id
+		//positions				//texture coords					//ghost id			//part id
 		-1, -1,					0 / 5.0f, 0 / 2.0f,					0,					0,
 		 1, -1,					1 / 5.0f, 0 / 2.0f,					0,					0,
 		 1,  1,					1 / 5.0f, 1 / 2.0f,					0,					0,
