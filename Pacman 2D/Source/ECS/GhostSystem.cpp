@@ -42,11 +42,14 @@ void GhostSystem::Init(std::shared_ptr<Map> map)
 	assert(ghostStartPos[CLYDE] != nullptr);
 
 	//get ghost house position
-	auto ghostHouseInside = posLayer->firstObj(Map::GHOST_HOUSE_INSIDE_POS_NAME);
-	auto ghostHouseOutside = posLayer->firstObj(Map::GHOST_HOUSE_OUTSIDE_POS_NAME);
+	auto ghostHouseInsideObj = posLayer->firstObj(Map::GHOST_HOUSE_INSIDE_POS_NAME);
+	auto ghostHouseOutsideObj = posLayer->firstObj(Map::GHOST_HOUSE_OUTSIDE_POS_NAME);
 
-	assert(ghostHouseInside != nullptr);
-	assert(ghostHouseOutside != nullptr);
+	assert(ghostHouseInsideObj != nullptr);
+	assert(ghostHouseOutsideObj != nullptr);
+
+	this->ghostHouseInsidePos = { ghostHouseInsideObj->getPosition().x / 8.f - TILE_OFFSET, ghostHouseInsideObj->getPosition().y / 8.f - TILE_OFFSET, 0 };
+	this->ghostHouseOutsidePos = { ghostHouseOutsideObj->getPosition().x / 8.f - TILE_OFFSET, ghostHouseOutsideObj->getPosition().y / 8.f - TILE_OFFSET, 0 };
 
 	CreateGhost(
 		PINKY,
@@ -136,25 +139,24 @@ void GhostSystem::LoadExtra(std::shared_ptr<Shader> shader)
 
 void GhostSystem::Update(float dt)
 {
-	float t = 0.5f * (1 + sin(accumulatedTime * 20));
-	int temp = (t > 0.5f) ? 1 : 0;
-
 	assert(entities.size() == GHOST_COUNT);
 
 	for (auto e : entities)
 	{
+		if (ghosts[BLINKY] != e)
+		{
+			continue;
+		}
+
 		auto& ghostComponent = coordinator->GetComponent<GhostComponent>(e);
-		ghostComponent.part[0] = temp;
 		auto& transform = coordinator->GetComponent<TransformComponent>(e);
 		auto& motion = coordinator->GetComponent<MotionComponent>(e);
 		auto pos = transform.GetPosition();
-
-		UpdateTargetPos(e);
-
 		auto& tilePosCom = coordinator->GetComponent<TilePositionComponent>(e);
 
 		if (dy::isInteger(pos.x) && dy::isInteger(pos.y))
 		{
+			//update tile position and set hasEnteredNewTile to true
 			if (!dy::isEqual(tilePosCom.x, pos.x) || !dy::isEqual(tilePosCom.y, pos.y))
 			{
 				tilePosCom.x = (int)pos.x;
@@ -162,6 +164,7 @@ void GhostSystem::Update(float dt)
 				ghostComponent.hasEnteredNewTile = true;
 			}
 
+			//handle if the ghost is outside the map
 			if (dy::isEqual(pos.x, map->GetWidth()))
 			{
 				transform.SetPosition({ 0, pos.y, 0 });
@@ -181,20 +184,38 @@ void GhostSystem::Update(float dt)
 			}
 		}
 
-		////set the direction to the next tile
-		if (ghostComponent.hasEnteredNewTile)
+		while (true)
 		{
-			ghostComponent.hasEnteredNewTile = false;
-			UpdateGhostDirIdx(e);
-			UpdateGhostVelocity(e);
-			UpdateGhostEyeDir(e);
-		}
+			if (ghostComponent.targetPos.empty())
+			{
+				break;
+			}
 
-		if (sharedData->IsPathDebugEnabled())
+			auto curTarget = ghostComponent.targetPos.front();
+
+			if (dy::isEqual(pos.x, curTarget.x) && dy::isEqual(pos.y, curTarget.y))
+			{
+				ghostComponent.targetPos.erase(ghostComponent.targetPos.begin());
+			}
+			else
+			{
+				break;
+			}
+		}
+	
+		UpdateGhostStateAndMode(e);
+		//calculate new target positions if needed
+		UpdateTargetPos(e);
+		UpdateGhostDirIdx(e);
+		UpdateGhostVelocity(e);
+		UpdateGhostLook(e);
+
+		//for debug purpose, we can see the path that the ghost is going to take using AStart, but not always the case
+		if (sharedData->IsPathDebugEnabled() && !ghostComponent.targetPos.empty())
 		{
 			ghostComponent.path = astar.FindPath(
 				{ transform.GetPosition().x, transform.GetPosition().y },
-				{ ghostComponent.targetPos.x, ghostComponent.targetPos.y },
+				{ ghostComponent.targetPos.front().x, ghostComponent.targetPos.front().y},
 				ghostComponent.dirIdx
 			);
 
@@ -202,11 +223,54 @@ void GhostSystem::Update(float dt)
 			UpdateDebugGhostPath();
 			UpdateDebugTargetPos();
 		}
+
+		//set the direction to the next tile, only do this once per tile
+		if (ghostComponent.hasEnteredNewTile)
+		{
+			ghostComponent.hasEnteredNewTile = false;
+		}
 	}
 
 	accumulatedTime += dt;
 
 	HandleDebugInput();
+}
+
+void GhostSystem::UpdateGhostStateAndMode(Entity ghost)
+{
+	auto& ghostComponent = coordinator->GetComponent<GhostComponent>(ghost);
+	auto state = static_cast<GhostComponent::State>(ghostComponent.state);
+	auto mode = static_cast<GhostComponent::Mode>(ghostComponent.mode);
+	auto& trans = coordinator->GetComponent<TransformComponent>(ghost);
+	auto pos = trans.GetPosition();
+
+	if (state == GhostComponent::State::DEAD)
+	{
+		if (dy::isEqual(pos.x, ghostHouseOutsidePos.x) && dy::isEqual(pos.y, ghostHouseOutsidePos.y))
+		{
+			ghostComponent.state = GhostComponent::State::GOING_IN;
+		}
+	}
+
+	if (state == GhostComponent::State::GOING_IN)
+	{
+		auto respawnPos = ghostComponent.respawnPos;
+		if (dy::isEqual(pos.x, respawnPos.x) && dy::isEqual(pos.y, respawnPos.y))
+		{
+			ghostComponent.state = GhostComponent::State::GOING_OUT;
+		}	
+	}
+
+	if (state == GhostComponent::State::GOING_OUT)
+	{
+		
+		if (dy::isEqual(pos.x, ghostHouseOutsidePos.x) && dy::isEqual(pos.y, ghostHouseOutsidePos.y))
+		{
+			ghostComponent.state = GhostComponent::State::ACTIVE;
+			ghostComponent.mode = GhostComponent::Mode::SCATTER;
+		}
+	}
+
 }
 
 void GhostSystem::Draw(std::shared_ptr<Shader> shader, std::shared_ptr<Texture> tex)
@@ -251,33 +315,40 @@ void GhostSystem::CreateGhost(GhostType type, glm::vec3 startPos, glm::vec2 scat
 	auto newGhost = coordinator->CreateEntity();
 
 	GhostComponent ghostComponent;
-	ghostComponent.state = GhostComponent::State::IN_CAGE;
+	ghostComponent.startPos = { startPos.x - TILE_OFFSET, startPos.y - TILE_OFFSET, 0 };
+	ghostComponent.type = type;
+	ghostComponent.scatterPos = scatterPos;
+	ghostComponent.targetPos.emplace_back(scatterPos);
+	ghostComponent.respawnPos = startPos;//except for blinky
 
 	switch (type)
 	{
 	case GhostSystem::BLINKY:
 		ghostComponent.color = GhostComponent::BLINKY_COLOR;
-		ghostComponent.state = GhostComponent::State::ALIVE;
+		ghostComponent.state = GhostComponent::State::ACTIVE;
+		ghostComponent.mode = GhostComponent::Mode::SCATTER;
+		//blink respawn is the center of the ghost house
+		ghostComponent.respawnPos = ghostHouseInsidePos;
 		break;
 	case GhostSystem::PINKY:
 		ghostComponent.color = GhostComponent::PINKY_COLOR;
+		ghostComponent.state = GhostComponent::State::CAPTIVE;
+		ghostComponent.mode = GhostComponent::Mode::NOT_ACTIVE;
 		break;
 	case GhostSystem::INKY:
 		ghostComponent.color = GhostComponent::INKY_COLOR;
+		ghostComponent.state = GhostComponent::State::CAPTIVE;
+		ghostComponent.mode = GhostComponent::Mode::NOT_ACTIVE;
 		break;
 	case GhostSystem::CLYDE:
 		ghostComponent.color = GhostComponent::CLYDE_COLOR;
+		ghostComponent.state = GhostComponent::State::CAPTIVE;
+		ghostComponent.mode = GhostComponent::Mode::NOT_ACTIVE;
 		break;
 	default:
 		assert(false && "Invalid ghost type");
 		break;
 	}
-
-	ghostComponent.startPos = { startPos.x - TILE_OFFSET, startPos.y - TILE_OFFSET, 0 };
-	ghostComponent.type = type;
-	ghostComponent.scatterPos = scatterPos;
-	ghostComponent.targetPos = scatterPos;
-	ghostComponent.mode = GhostComponent::Mode::SCATTER;
 
 	coordinator->AddComponent<GhostComponent>(newGhost, ghostComponent);
 	coordinator->AddComponent<TransformComponent>(newGhost, TransformComponent{ ghostComponent.startPos });
@@ -322,17 +393,59 @@ void GhostSystem::Move(GhostType type, glm::vec3 dir)
 void GhostSystem::UpdateTargetPos(Entity e)
 {
 	auto& ghostComponent = coordinator->GetComponent<GhostComponent>(e);
-	auto& transform = coordinator->GetComponent<TransformComponent>(e);
 
-	if (ghostComponent.mode == GhostComponent::Mode::SCATTER)
+	//the ghost already has a target position, we don't need to update it
+	if (!ghostComponent.targetPos.empty())
 	{
-		ghostComponent.targetPos = ghostComponent.scatterPos;
+		//if the ghost already had a target position, we don't need to update it
 		return;
 	}
 
+	if (ghostComponent.state == GhostComponent::State::GOING_IN)
+	{
+		//inside house -> respawn position
+		ghostComponent.targetPos.clear();
+		ghostComponent.targetPos.emplace_back(ghostHouseInsidePos);
+		ghostComponent.targetPos.emplace_back(ghostComponent.respawnPos);
+		return;
+	}
+
+	if (ghostComponent.state == GhostComponent::State::GOING_OUT)
+	{
+		//inside house -> outside house
+		ghostComponent.targetPos.clear();
+		ghostComponent.targetPos.emplace_back(ghostHouseInsidePos);
+		ghostComponent.targetPos.emplace_back(ghostHouseOutsidePos);
+		return;
+	}
+
+	if (ghostComponent.state == GhostComponent::State::CAPTIVE)
+	{
+		ghostComponent.targetPos.clear();
+		return;
+	}
+
+	if (ghostComponent.state == GhostComponent::State::DEAD)
+	{
+		ghostComponent.targetPos.emplace_back(ghostHouseOutsidePos);
+		return;
+	}
+
+	if (ghostComponent.state != GhostComponent::State::ACTIVE || ghostComponent.mode == GhostComponent::Mode::NOT_ACTIVE)
+	{
+		throw std::runtime_error("This cannot be reached!");
+	}
+
+	//frightened mode has no target position
 	if (ghostComponent.mode == GhostComponent::Mode::FRIGHTENED)
 	{
-		assert(false && "Not implemented");
+		ghostComponent.targetPos.clear();
+		return;
+	}
+
+	if (ghostComponent.mode == GhostComponent::Mode::SCATTER)
+	{
+		ghostComponent.targetPos.emplace_back(ghostComponent.scatterPos);
 		return;
 	}
 
@@ -340,23 +453,23 @@ void GhostSystem::UpdateTargetPos(Entity e)
 	{
 	case GhostSystem::BLINKY:
 		//Blinky always chase pacman
-		ghostComponent.targetPos = sharedData->GetPacmanPos();
+		ghostComponent.targetPos.emplace_back(sharedData->GetPacmanPos());
 		break;
 	case GhostSystem::PINKY:
 		switch (sharedData->GetPacmanDir())
 		{
 		case PlayerComponent::UP:
 			//minus both x and y to simulate overflow
-			ghostComponent.targetPos = sharedData->GetPacmanPos() + glm::vec2(-4, -4);
+			ghostComponent.targetPos.emplace_back(sharedData->GetPacmanPos() + glm::vec2(-4, -4));
 			break;
 		case PlayerComponent::DOWN:
-			ghostComponent.targetPos = sharedData->GetPacmanPos() + glm::vec2(0, +4);
+			ghostComponent.targetPos.emplace_back(sharedData->GetPacmanPos() + glm::vec2(0, +4));
 			break;
 		case PlayerComponent::LEFT:
-			ghostComponent.targetPos = sharedData->GetPacmanPos() + glm::vec2(-4, 0);
+			ghostComponent.targetPos.emplace_back(sharedData->GetPacmanPos() + glm::vec2(-4, 0));
 			break;
 		case::PlayerComponent::RIGHT:
-			ghostComponent.targetPos = sharedData->GetPacmanPos() + glm::vec2(+4, 0);
+			ghostComponent.targetPos.emplace_back(sharedData->GetPacmanPos() + glm::vec2(+4, 0));
 			break;
 			break;
 		default:
@@ -368,18 +481,21 @@ void GhostSystem::UpdateTargetPos(Entity e)
 		auto pacmanPos = sharedData->GetPacmanPos();
 		auto blinkyPos = coordinator->GetComponent<TransformComponent>(ghosts[BLINKY]).GetPosition();
 		auto inkyTargetPos = pacmanPos + (pacmanPos - glm::vec2{ blinkyPos.x, blinkyPos.y });
-		ghostComponent.targetPos = inkyTargetPos;
+		ghostComponent.targetPos.emplace_back(inkyTargetPos);
 		break;
 	case GhostSystem::CLYDE:
+	{
+		auto &transform = coordinator->GetComponent<TransformComponent>(e);
 		//if the distance between clyde and pacman is less than 8 tiles, clyde will target scatter position,
 		//otherwise it will target pacman
-		ghostComponent.targetPos = glm::distance(
+		ghostComponent.targetPos.emplace_back(glm::distance(
 			transform.GetPosition(),
 			glm::vec3{ sharedData->GetPacmanPos().x, sharedData->GetPacmanPos().y, 0 }
 		)
-			< 8 ? ghostComponent.scatterPos : sharedData->GetPacmanPos();
+			< 8 ? ghostComponent.scatterPos : sharedData->GetPacmanPos());
 
 		break;
+	}
 	default:
 		break;
 	}
@@ -388,30 +504,49 @@ void GhostSystem::UpdateTargetPos(Entity e)
 void GhostSystem::UpdateDebugTargetPos()
 {
 	//Blinky
-	auto& blinkyDebug = coordinator->GetComponent<DebugPathComponent>(ghosts[BLINKY]);
 	auto& blinkyTargetPos = coordinator->GetComponent<GhostComponent>(ghosts[BLINKY]).targetPos;
-	blinkyDebug.targetPositions = { blinkyTargetPos.x, blinkyTargetPos.y, 0 };
+	if (!blinkyTargetPos.empty())
+	{
+		auto& blinkyDebug = coordinator->GetComponent<DebugPathComponent>(ghosts[BLINKY]);
+		blinkyDebug.targetPositions = { blinkyTargetPos.front().x, blinkyTargetPos.front().y, 0};
+	}
 
 	//Pinky
-	auto& pinkyDebug = coordinator->GetComponent<DebugPathComponent>(ghosts[PINKY]);
 	auto& pinkyTargetPos = coordinator->GetComponent<GhostComponent>(ghosts[PINKY]).targetPos;
-	pinkyDebug.targetPositions = { pinkyTargetPos.x, pinkyTargetPos.y, 0 };
+	if (!pinkyTargetPos.empty())
+	{
+		auto& pinkyDebug = coordinator->GetComponent<DebugPathComponent>(ghosts[PINKY]);
+		pinkyDebug.targetPositions = { pinkyTargetPos.front().x, pinkyTargetPos.front().y, 0};
+	}
+	
 
 	//Inky
-	auto& inkyDebug = coordinator->GetComponent<DebugPathComponent>(ghosts[INKY]);
 	auto& inkyTargetPos = coordinator->GetComponent<GhostComponent>(ghosts[INKY]).targetPos;
-	inkyDebug.targetPositions = { inkyTargetPos.x, inkyTargetPos.y, 0 };
+	if (!inkyTargetPos.empty())
+	{
+		auto& inkyDebug = coordinator->GetComponent<DebugPathComponent>(ghosts[INKY]);
+		inkyDebug.targetPositions = { inkyTargetPos.front().x, inkyTargetPos.front().y, 0};
+	}
 
 	//Clyde
-	auto& clydeDebug = coordinator->GetComponent<DebugPathComponent>(ghosts[CLYDE]);
 	auto& clydeTargetPos = coordinator->GetComponent<GhostComponent>(ghosts[CLYDE]).targetPos;
-	clydeDebug.targetPositions = { clydeTargetPos.x, clydeTargetPos.y, 0 };
+	if(!clydeTargetPos.empty())
+	{ 
+		auto& clydeDebug = coordinator->GetComponent<DebugPathComponent>(ghosts[CLYDE]);
+		clydeDebug.targetPositions = { clydeTargetPos.front().x, clydeTargetPos.front().y, 0};
+	}	
 }
 
 void GhostSystem::UpdateGhostDirIdx(Entity ghost)
 {
 	std::vector<int> possibleDirs = GetValidDirs(ghost, coordinator->GetComponent<TransformComponent>(ghost).GetPosition());
 	auto& ghostComponent = coordinator->GetComponent<GhostComponent>(ghost);
+
+	if (possibleDirs.empty())
+	{
+		throw std::runtime_error("How? :))");
+		return;
+	}
 
 	if (possibleDirs.size() == 1)
 	{
@@ -425,37 +560,41 @@ void GhostSystem::UpdateGhostDirIdx(Entity ghost)
 		//pick a random direction
 		ghostComponent.dirIdx = possibleDirs[dy::ranInt(0, possibleDirs.size() - 1)];
 		break;
-	case GhostComponent::Mode::CHASE:
-	case GhostComponent::Mode::SCATTER:
-	{
-		//pick the direction that will bring the ghost closer to the target
-		auto firstDir = GetDirectionVec(possibleDirs[0]);
-		float minDist = glm::distance(
-			coordinator->GetComponent<TransformComponent>(ghost).GetPosition() + firstDir,
-			glm::vec3(ghostComponent.targetPos.x, ghostComponent.targetPos.y, 0)
-		);
-
-		ghostComponent.dirIdx = possibleDirs[0];
-
-		for (auto d : possibleDirs)
+	default:
 		{
-			auto dir = GetDirectionVec(d);
-			float dist = glm::distance(
-				coordinator->GetComponent<TransformComponent>(ghost).GetPosition() + dir,
-				glm::vec3(ghostComponent.targetPos.x, ghostComponent.targetPos.y, 0)
+			//pick the direction that will bring the ghost closer to the target
+			auto firstDir = GetDirectionVec(possibleDirs[0]);
+			ghostComponent.dirIdx = possibleDirs[0];
+
+			if (ghostComponent.targetPos.empty())
+			{
+				DyLogger::LogArg(DyLogger::LOG_WARNING, "Ghost has no target position, id : %d", ghost);
+			}
+
+			auto curTarget = glm::vec3(ghostComponent.targetPos.front().x, ghostComponent.targetPos.front().y, 0);
+
+			float minDist = glm::distance(
+				coordinator->GetComponent<TransformComponent>(ghost).GetPosition() + firstDir,
+				curTarget
 			);
 
-			if (dist < minDist)
+			for (auto d : possibleDirs)
 			{
-				minDist = dist;
-				ghostComponent.dirIdx = d;
-			}
-		}
+				auto dir = GetDirectionVec(d);
+				float dist = glm::distance(
+					coordinator->GetComponent<TransformComponent>(ghost).GetPosition() + dir,
+					curTarget
+				);
 
-		break;
-	}
-	default:
-		break;
+				if (dist < minDist)
+				{
+					minDist = dist;
+					ghostComponent.dirIdx = d;
+				}
+			}
+
+			break;
+		}
 	}
 }
 
@@ -475,7 +614,7 @@ glm::vec3 GhostSystem::GetDirectionVec(int dir)
 	case GhostComponent::RIGHT:
 		return RIGHT;
 		break;
-	case GhostComponent::NONE:
+	case GhostComponent::NONE_DIRECTION:
 		return glm::vec3(0);
 		break;
 	default:
@@ -485,60 +624,104 @@ glm::vec3 GhostSystem::GetDirectionVec(int dir)
 
 std::vector<int> GhostSystem::GetValidDirs(Entity ghost, glm::vec2 pos)
 {
-	std::vector<int> temp;
-
-	if (!dy::isInteger(pos.x) && !dy::isInteger(pos.y))
-	{
-		throw std::exception("Invalid position");
-	}
-
 	auto& ghostComponent = coordinator->GetComponent<GhostComponent>(ghost);
 
-	if (ghostComponent.dirIdx == GhostComponent::NONE)
+	//The directions that the ghost can take is determined by its state first, only when the ghost is ACTIVE then we will consider the mode
+	GhostComponent::State state = static_cast<GhostComponent::State>(ghostComponent.state);
+	GhostComponent::Mode mode = static_cast<GhostComponent::Mode>(ghostComponent.mode);
+	GhostComponent::Direction curDir = static_cast<GhostComponent::Direction>(ghostComponent.dirIdx);
+
+	//easiest case, the ghost need to go in/out the ghost house
+	if (state == GhostComponent::State::GOING_IN || state == GhostComponent::State::GOING_OUT)
 	{
-		if (!dy::isInteger(pos.x))
+		std::vector<int> result;
+		result.emplace_back(GhostComponent::UP);
+		result.emplace_back(GhostComponent::DOWN);
+		result.emplace_back(GhostComponent::LEFT);
+		result.emplace_back(GhostComponent::RIGHT);
+		return result;
+	}
+
+	if (state == GhostComponent::State::CAPTIVE)
+	{
+		//if the ghost is in the cage, it can only go up or down with no target position
+		std::vector<int> result;
+
+		switch (curDir)
 		{
-			temp.emplace_back(GhostComponent::LEFT);
-			temp.emplace_back(GhostComponent::RIGHT);
+		case GhostComponent::UP:
+			//if there's a wall above the ghost, it can only go down
+			//else it remains the same
+			if (map->IsWall(pos.x, pos.y - 1))
+			{
+				result.emplace_back(GhostComponent::DOWN);
+			}
+			else
+			{
+				result.emplace_back(GhostComponent::UP);
+			}
+			break;
+		case GhostComponent::DOWN:
+			//if there's a wall below the ghost, it can only go up
+			//else it remains the same
+			if (map->IsWall(pos.x, pos.y + 1))
+			{
+				result.emplace_back(GhostComponent::UP);
+			}
+			else
+			{
+				result.emplace_back(GhostComponent::DOWN);
+			}
+			break;
+		case GhostComponent::NONE_DIRECTION:
+			//up or down as long as there's no wall
+			if (ghost%2)
+			{
+				result.emplace_back(GhostComponent::DOWN);
+			}
+			else
+			{
+				result.emplace_back(GhostComponent::UP);
+			}
+			break;
+		default:
+			throw std::exception("Invalid directions in CAPTIVE state");
+			break;
 		}
 
-		if (!dy::isInteger(pos.y))
+		return result;
+	}
+
+	//the ghost is in ACTIVE or DEAD state
+	if (state != GhostComponent::State::ACTIVE && state != GhostComponent::State::DEAD)
+	{
+		throw std::runtime_error("This cannot be reached!");
+	}
+
+	//store possible directions regardless of wall and the current direction
+	std::vector<int> temp;
+
+	if (!ghostComponent.hasEnteredNewTile)
+	{
+		temp.emplace_back(ghostComponent.dirIdx);
+	}
+	else {
+
+		if (!dy::isInteger(pos.x) && !dy::isInteger(pos.y))
+		{
+			throw std::runtime_error("This cannot be reached!");
+		}
+
+		if (dy::isInteger(pos.x))
 		{
 			temp.emplace_back(GhostComponent::UP);
 			temp.emplace_back(GhostComponent::DOWN);
 		}
-	}
-	else if (dy::isInteger(pos.x) && dy::isInteger(pos.y))
-	{
-		//x and y are both integers
 
-		temp.emplace_back(GhostComponent::UP);
-		temp.emplace_back(GhostComponent::DOWN);
-		temp.emplace_back(GhostComponent::LEFT);
-		temp.emplace_back(GhostComponent::RIGHT);
-	}
-	else if (!dy::isInteger(pos.y))
-	{
-		if (ghostComponent.dirIdx == GhostComponent::NONE)
+		if (dy::isInteger(pos.y))
 		{
-			temp.emplace_back(GhostComponent::UP);
-			temp.emplace_back(GhostComponent::DOWN);
-		}
-		else
-		{
-			temp.emplace_back(ghostComponent.dirIdx);
-		}
-	}
-	else if (!dy::isInteger(pos.x))
-	{
-		if (ghostComponent.dirIdx == GhostComponent::NONE)
-		{
-			temp.emplace_back(GhostComponent::RIGHT);
 			temp.emplace_back(GhostComponent::LEFT);
-		}
-		else
-		{
-			temp.emplace_back(ghostComponent.dirIdx);
+			temp.emplace_back(GhostComponent::RIGHT);
 		}
 	}
 
@@ -619,10 +802,10 @@ std::vector<int> GhostSystem::GetValidDirs(Entity ghost, glm::vec2 pos)
 	if ((result.size() == 0))
 	{
 		DyLogger::LogArg(DyLogger::LOG_WARNING, "No valid direction for ghost has entity id %d", ghost);
-		result.emplace_back(GhostComponent::NONE);
+		result.emplace_back(GhostComponent::NONE_DIRECTION);
 	}
 
-	return result;
+	return result;	
 }
 
 void GhostSystem::UpdateGhostVelocity(Entity ghost)
@@ -643,11 +826,27 @@ void GhostSystem::HandleDebugInput()
 
 		if (sharedData->IsBtnChaseClicked())
 		{
+			ghostComponent.state = GhostComponent::State::ACTIVE;
 			ghostComponent.mode = GhostComponent::Mode::CHASE;
+			ghostComponent.targetPos.clear();
 		}
 		else if (sharedData->IsBtnScatterClicked())
 		{
+			ghostComponent.state = GhostComponent::State::ACTIVE;
 			ghostComponent.mode = GhostComponent::Mode::SCATTER;
+			ghostComponent.targetPos.clear();
+		}
+		else if (sharedData->IsBtnDeadClicked())
+		{
+			ghostComponent.state = GhostComponent::State::DEAD;
+			ghostComponent.mode = GhostComponent::Mode::NOT_ACTIVE;
+			ghostComponent.targetPos.clear();
+		}
+		else if (sharedData->IsBtnFrightenedClicked())
+		{
+			ghostComponent.state = GhostComponent::State::ACTIVE;
+			ghostComponent.mode = GhostComponent::Mode::FRIGHTENED;
+			ghostComponent.targetPos.clear();
 		}
 	}
 }
@@ -720,9 +919,30 @@ void GhostSystem::UpdateDebugGhostPath()
 	}
 }
 
-void GhostSystem::UpdateGhostEyeDir(Entity ghost)
+void GhostSystem::UpdateGhostLook(Entity ghost)
 {
 	auto& ghostComponent = coordinator->GetComponent<GhostComponent>(ghost);
+	
+	auto curState = static_cast<GhostComponent::State>(ghostComponent.state);
+
+	switch (curState)
+	{
+	case GhostComponent::DEAD:
+	case GhostComponent::GOING_IN:
+		ghostComponent.part[0] = 2;
+		break;
+	case GhostComponent::ACTIVE:
+	case GhostComponent::GOING_OUT:
+	case GhostComponent::CAPTIVE:
+	{
+		float t = 0.5f * (1 + sin(accumulatedTime * 20));
+		int temp = (t > 0.5f) ? 1 : 0;
+		ghostComponent.part[0] = temp;
+		break;
+	}		
+	default:
+		break;
+	}
 
 	if (ghostComponent.mode == GhostComponent::Mode::FRIGHTENED)
 	{

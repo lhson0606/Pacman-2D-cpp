@@ -186,7 +186,7 @@ void DebugSystem::DrawImgui()
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
 		ImGui::SetNextWindowPos(ImVec2(w-200, 0));
-		ImGui::SetNextWindowSize(ImVec2(200, 100));
+		ImGui::SetNextWindowSize(ImVec2(200, 400));
 		ImGui::Begin("Debug");
 		ImGui::Checkbox("Toggle debug path", sharedData->GetPathDebugPtr());
 
@@ -200,6 +200,14 @@ void DebugSystem::DrawImgui()
 		else if (ImGui::Button("Trigger scatter mode"))
 		{
 			*sharedData->GetBtnScatterPtr() = true;
+		}
+		else if (ImGui::Button("Trigger frightened mode"))
+		{
+			*sharedData->GetBtnFrightenedPtr() = true;
+		}
+		else if (ImGui::Button("Trigger dead mode"))
+		{
+			*sharedData->GetBtnDeadPtr() = true;
 		}
 
 		ImGui::End();

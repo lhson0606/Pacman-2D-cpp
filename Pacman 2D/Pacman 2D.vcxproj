@@ -611,6 +611,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="assimp-vc143-mtd.dll" />
+    <None Include="imgui.ini" />
     <None Include="Includes\imgui\imgui.gdb" />
     <None Include="Includes\imgui\imgui.natstepfilter" />
     <None Include="Resources\GLSL\ghost.frag" />

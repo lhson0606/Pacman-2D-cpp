@@ -16,18 +16,23 @@ public:
 	inline static const glm::vec3 CLYDE_COLOR = { 219 / 255.0f,133 / 255.0f,28 / 255.0f };
 	inline static const glm::vec3 BLINKY_COLOR = { 208 / 255.0f,62 / 255.0f,25 / 255.0f };
 
+	//the mode is always NOT_ACTIVE when the State is not ACTIVE
+	//and the ghost can be at one of three modes: CHASE, SCATTER, FRIGHTENED when the State is ACTIVE
 	enum Mode
 	{
-		CHASE,
-		SCATTER,
-		FRIGHTENED
+		CHASE,//chase the player
+		SCATTER,//go to a default position
+		FRIGHTENED,//pick a random direction and move
+		NOT_ACTIVE,//the ghost is at state DEAD || IN_CAGE || ACTIVE
 	};
 
 	enum State
 	{
-		DEAD,
-		ALIVE,
-		IN_CAGE
+		ACTIVE,//when the ghost is alive, it can enter a mode
+		DEAD,//the ghost is dead and need to go back to the ghost house for resurrection
+		CAPTIVE,//used when the ghost is in the cage and cannot go out
+		GOING_IN,//used to enable the ghost to move in/out the ghost house
+		GOING_OUT,//used to enable the ghost to move in/out the ghost house
 	};
 
 	enum Direction
@@ -36,12 +41,13 @@ public:
 		DOWN,
 		LEFT,
 		RIGHT,
-		NONE
+		NONE_DIRECTION//at the start of the game, the ghost has no direction or there's no direction it can take
 	};
 
-	int mode = SCATTER;
-	//the ghost state, can be DEAD, ALIVE, IN_CAGE
-	int state = IN_CAGE;
+	//the mode will determine the ghost behavior only when the state is ACTIVE
+	int mode = NOT_ACTIVE;
+	//the ghost state, can be ACTIVE, DEAD, CAPTIVE, GOING_OUT
+	int state = CAPTIVE;
 	//part[0] = index to draw body and part[1] = index to draw eyes
 	int part[2] = { 0, 0 };
 	//ghost color
@@ -52,14 +58,15 @@ public:
 	std::vector<glm::ivec2> path;
 	//ghost id to update in OpenglGL vertex buffer
 	int type = -1;
-	//the current position that the ghost is aiming to reach in CHASE mode
-	glm::vec2 targetPos = { 0,0 };
+	//position that the ghost need to reach
+	std::vector<glm::vec2> targetPos;
 	//the current position that the ghost is aiming to reach in SCATTER mode
 	glm::vec2 scatterPos = { 0,0 };
 	//current ghost direction idx so that we can check if the ghost is going to change direction and update its velocity
-	int dirIdx = NONE;
+	int dirIdx = NONE_DIRECTION;
 	//the ghost needs this in order to update its direction only once per tile
 	bool hasEnteredNewTile = true;
+	glm::vec3 respawnPos = { 0,0,0 };
 
 	GhostComponent();
 };

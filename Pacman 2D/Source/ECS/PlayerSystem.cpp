@@ -45,8 +45,6 @@ void PlayerSystem::Init(std::shared_ptr<Map> map)
 
 	glm::vec2 pos = glm::vec2(x, y);
 
-	DyLogger::LogArg(DyLogger::LOG_INFO, "Player start position: (%f, %f)", pos.x, pos.y);
-
 	CreatePlayer(pos);
 }
 
@@ -84,6 +82,26 @@ void PlayerSystem::Update(float dt)
 			coordinator->GetComponent<TilePositionComponent>(curPlayer).SetTilePosition((int)pos.x, (int)pos.y);
 			coordinator->GetComponent<PlayerComponent>(curPlayer).SetEnteredNewTile(true);
 		}
+	}
+
+	if (pos.x < 0)
+	{
+		coordinator->GetComponent<TransformComponent>(curPlayer).SetPosition({ map->GetWidth() - 1, pos.y, 0 });
+	}
+
+	if (pos.x > map->GetWidth() - 1)
+	{
+		coordinator->GetComponent<TransformComponent>(curPlayer).SetPosition({ 0, pos.y, 0 });
+	}
+
+	if (pos.y < 0)
+	{
+		coordinator->GetComponent<TransformComponent>(curPlayer).SetPosition({ pos.x, map->GetHeight() - 1, 0 });
+	}
+
+	if (pos.y > map->GetHeight() -1)
+	{
+		coordinator->GetComponent<TransformComponent>(curPlayer).SetPosition({ pos.x, 0, 0 });
 	}
 }
 

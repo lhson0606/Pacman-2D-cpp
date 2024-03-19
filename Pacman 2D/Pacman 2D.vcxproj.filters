@@ -1840,6 +1840,7 @@
     <None Include="Resources\GLSL\pacman.frag" />
     <None Include="Includes\imgui\imgui.gdb" />
     <None Include="Includes\imgui\imgui.natstepfilter" />
+    <None Include="imgui.ini" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Vendors\Libs\assimp-vc143-mtd.lib" />

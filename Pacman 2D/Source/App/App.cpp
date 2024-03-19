@@ -72,7 +72,7 @@ int App::Run()
 		{
 			if (!warnOnce)
 			{
-				DyLogger::LogArg(DyLogger::LOG_WARNING, "The program is running extremely slow frame time: %f", dt);
+				DyLogger::LogArg(DyLogger::LOG_WARNING, "High frame time: %f", dt);
 				warnOnce = true;
 			}
 

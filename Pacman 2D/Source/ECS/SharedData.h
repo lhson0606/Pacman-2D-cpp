@@ -17,11 +17,17 @@ public:
 	bool* GetBtnChasePtr();
 	bool IsBtnScatterClicked() const;
 	bool* GetBtnScatterPtr();
+	bool IsBtnFrightenedClicked() const;
+	bool* GetBtnFrightenedPtr();
+	bool IsBtnDeadClicked() const;
+	bool* GetBtnDeadPtr();
 	~SharedData();
 private:
 	glm::vec2 pacmanPos = glm::vec2(-1);
 	int pacmanDir = 0;
 	bool btnChaseClicked = false;
 	bool btnScatterClicked = false;
+	bool btnFrightenedClicked = false;
+	bool btnDeadClicked = false;
 	bool enablePathDebug = true;
 };

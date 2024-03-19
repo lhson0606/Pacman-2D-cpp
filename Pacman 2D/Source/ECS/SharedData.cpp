@@ -59,6 +59,26 @@ bool* SharedData::GetBtnScatterPtr()
 	return &btnScatterClicked;
 }
 
+bool SharedData::IsBtnFrightenedClicked() const
+{
+	return btnFrightenedClicked;
+}
+
+bool* SharedData::GetBtnFrightenedPtr()
+{
+	return &btnFrightenedClicked;
+}
+
+bool SharedData::IsBtnDeadClicked() const
+{
+	return btnDeadClicked;
+}
+
+bool* SharedData::GetBtnDeadPtr()
+{
+	return &btnDeadClicked;
+}
+
 SharedData::~SharedData()
 {
 }

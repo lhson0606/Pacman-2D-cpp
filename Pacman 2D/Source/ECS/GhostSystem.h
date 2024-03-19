@@ -69,6 +69,8 @@ public:
 
 	void HandleDebugInput();
 
+	void UpdateGhostStateAndMode(Entity ghost);
+
 	~GhostSystem();
 
 private:
@@ -86,7 +88,7 @@ private:
 
 	void UpdateDebugGhostPath();
 
-	void UpdateGhostEyeDir(Entity ghost);
+	void UpdateGhostLook(Entity ghost);
 
 	std::shared_ptr<Map> map;
 
